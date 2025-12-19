@@ -1,0 +1,597 @@
+﻿/* ===================================
+   أداة التحديد المتعدد المحسنة للهاتف
+   =================================== */
+
+.multi-select-container {
+    position: relative;
+    width: 100%;
+}
+
+.multi-select-dropdown {
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem;
+}
+
+    .multi-select-dropdown:hover {
+        border-color: #667eea;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+    }
+
+    .multi-select-dropdown.active {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+
+.multi-select-placeholder {
+    color: #6c757d;
+    font-size: 0.95rem;
+}
+
+.multi-select-selected {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    flex: 1;
+}
+
+.multi-select-tag {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    animation: fadeIn 0.3s ease;
+}
+
+    .multi-select-tag .remove-tag {
+        background: rgba(255, 255, 255, 0.3);
+        border: none;
+        color: white;
+        border-radius: 50%;
+        width: 18px;
+        height: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 12px;
+        transition: background 0.2s ease;
+    }
+
+        .multi-select-tag .remove-tag:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+.multi-select-arrow {
+    color: #6c757d;
+    transition: transform 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.multi-select-dropdown.active .multi-select-arrow {
+    transform: rotate(180deg);
+}
+
+.multi-select-options {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 2px solid #667eea;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    max-height: 250px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+    .multi-select-options.show {
+        display: block;
+        animation: slideDown 0.3s ease;
+    }
+
+.multi-select-option {
+    padding: 0.75rem;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    border-bottom: 1px solid #f8f9fa;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+    .multi-select-option:last-child {
+        border-bottom: none;
+    }
+
+    .multi-select-option:hover {
+        background: #f8f9fa;
+    }
+
+    .multi-select-option.selected {
+        background: #e3f2fd;
+        color: #1976d2;
+    }
+
+.multi-select-checkbox {
+    width: 18px;
+    height: 18px;
+    border: 2px solid #dee2e6;
+    border-radius: 4px;
+    position: relative;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.multi-select-option.selected .multi-select-checkbox {
+    background: #667eea;
+    border-color: #667eea;
+}
+
+.multi-select-checkbox::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.multi-select-option.selected .multi-select-checkbox::after {
+    opacity: 1;
+}
+
+.multi-select-option-text {
+    flex: 1;
+    font-size: 0.95rem;
+}
+
+/* تحسينات للهاتف */
+@media (max-width: 768px) {
+    .multi-select-dropdown {
+        min-height: 50px;
+        padding: 1rem;
+    }
+
+    .multi-select-option {
+        padding: 1rem;
+        font-size: 1rem;
+    }
+
+    .multi-select-checkbox {
+        width: 20px;
+        height: 20px;
+    }
+
+    .multi-select-tag {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.9rem;
+    }
+
+        .multi-select-tag .remove-tag {
+            width: 20px;
+            height: 20px;
+            font-size: 14px;
+        }
+
+    .multi-select-options {
+        max-height: 300px;
+    }
+
+    /* تحسين التمرير للهاتف */
+    .multi-select-options {
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* تحسينات للشاشات الصغيرة جداً */
+@media (max-width: 480px) {
+    .multi-select-selected {
+        gap: 0.3rem;
+    }
+
+    .multi-select-tag {
+        font-size: 0.8rem;
+        padding: 0.3rem 0.6rem;
+    }
+
+    .multi-select-options {
+        max-height: 250px;
+    }
+}
+
+/* الأنيميشن */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* تحسين التركيز للوصولية */
+.multi-select-dropdown:focus {
+    outline: 2px solid #667eea;
+    outline-offset: 2px;
+}
+
+.multi-select-option:focus {
+    background: #e3f2fd;
+    outline: none;
+}
+
+/* تحسين للوضع المظلم */
+@media (prefers-color-scheme: dark) {
+    .multi-select-dropdown {
+        background: #2d3748;
+        border-color: #4a5568;
+        color: #e2e8f0;
+    }
+
+    .multi-select-options {
+        background: #2d3748;
+        border-color: #667eea;
+    }
+
+    .multi-select-option {
+        border-color: #4a5568;
+        color: #e2e8f0;
+    }
+
+        .multi-select-option:hover {
+            background: #4a5568;
+        }
+
+        .multi-select-option.selected {
+            background: #2b6cb0;
+            color: #e3f2fd;
+        }
+}
+
+/* تحسين للطباعة */
+@media print {
+    .multi-select-options {
+        display: none !important;
+    }
+
+    .multi-select-arrow {
+        display: none !important;
+    }
+}
+
+/* تحسين التوافق مع Bootstrap */
+.multi-select-container .form-control {
+    display: none;
+}
+
+.multi-select-dropdown.form-control {
+    display: flex !important;
+}
+
+/* تحسين للتكامل مع الأنظمة الموجودة */
+.multi-select-container + .form-text {
+    margin-top: 0.5rem;
+}
+
+.multi-select-container + .text-danger {
+    margin-top: 0.5rem;
+    display: block;
+}
+
+/* تحسين للحالة المعطلة */
+.multi-select-disabled {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+    .multi-select-disabled .multi-select-dropdown {
+        background-color: #e9ecef;
+        cursor: not-allowed;
+    }
+
+/* تحسين للحالة المطلوبة */
+.multi-select-required .multi-select-dropdown {
+    border-color: #dc3545;
+}
+
+    .multi-select-required .multi-select-dropdown:focus {
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+    }
+
+/* تحسين للحالة الصحيحة */
+.multi-select-valid .multi-select-dropdown {
+    border-color: #28a745;
+}
+
+    .multi-select-valid .multi-select-dropdown:focus {
+        box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+    }
+
+/* تحسين للتفاعل مع jQuery Validation */
+.field-validation-error + .multi-select-container .multi-select-dropdown {
+    border-color: #dc3545;
+}
+
+.field-validation-valid + .multi-select-container .multi-select-dropdown {
+    border-color: #28a745;
+}
+
+/* تحسين للتوافق مع الأنظمة العربية */
+.multi-select-container[dir="rtl"] .multi-select-arrow {
+    transform: scaleX(-1);
+}
+
+.multi-select-container[dir="rtl"] .multi-select-dropdown.active .multi-select-arrow {
+    transform: scaleX(-1) rotate(180deg);
+}
+
+/* تحسين للتوافق مع الخطوط العربية */
+.multi-select-option-text {
+    font-family: inherit;
+    line-height: 1.5;
+}
+
+/* تحسين للتوافق مع الألوان المخصصة */
+:root {
+    --multi-select-primary: #667eea;
+    --multi-select-primary-rgb: 102, 126, 234;
+    --multi-select-success: #28a745;
+    --multi-select-danger: #dc3545;
+    --multi-select-light: #f8f9fa;
+    --multi-select-dark: #343a40;
+}
+
+.multi-select-dropdown {
+    border-color: var(--multi-select-light);
+}
+
+    .multi-select-dropdown:hover,
+    .multi-select-dropdown.active {
+        border-color: var(--multi-select-primary);
+        box-shadow: 0 0 0 0.2rem rgba(var(--multi-select-primary-rgb), 0.25);
+    }
+
+.multi-select-tag {
+    background: linear-gradient(135deg, var(--multi-select-primary) 0%, #764ba2 100%);
+}
+
+.multi-select-checkbox {
+    border-color: var(--multi-select-light);
+}
+
+.multi-select-option.selected .multi-select-checkbox {
+    background: var(--multi-select-primary);
+    border-color: var(--multi-select-primary);
+}
+
+/* تحسين للأجهزة اللوحية */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .multi-select-dropdown {
+        min-height: 48px;
+        padding: 0.875rem;
+    }
+
+    .multi-select-option {
+        padding: 0.875rem;
+    }
+
+    .multi-select-tag {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+    }
+}
+
+/* تحسين للشاشات الكبيرة */
+@media (min-width: 1200px) {
+    .multi-select-options {
+        max-height: 350px;
+    }
+
+    .multi-select-search input {
+        padding: 0.625rem;
+    }
+}
+
+/* تحسين للتفاعل بالماوس */
+@media (hover: hover) and (pointer: fine) {
+    .multi-select-option:hover {
+        background: #f8f9fa;
+    }
+
+    .multi-select-tag .remove-tag:hover {
+        background: rgba(255, 255, 255, 0.5);
+        transform: scale(1.1);
+    }
+}
+
+/* تحسين للوضع عالي التباين */
+@media (prefers-contrast: high) {
+    .multi-select-dropdown {
+        border-width: 2px;
+    }
+
+    .multi-select-tag {
+        background: #000;
+        color: #fff;
+        border: 1px solid #fff;
+    }
+
+    .multi-select-checkbox {
+        border-width: 2px;
+    }
+}
+
+/* تحسين لتقليل الحركة */
+@media (prefers-reduced-motion: reduce) {
+    .multi-select-dropdown,
+    .multi-select-options,
+    .multi-select-tag,
+    .multi-select-checkbox,
+    .multi-select-arrow {
+        transition: none;
+        animation: none;
+    }
+}
+
+/* تحسين للطباعة الملونة */
+@media print and (color) {
+    .multi-select-tag {
+        background: #667eea !important;
+        color: white !important;
+    }
+}
+
+/* تحسين للتفاعل باللمس */
+@media (hover: none) and (pointer: coarse) {
+    .multi-select-option {
+        padding: 1.2rem;
+    }
+
+    .multi-select-dropdown {
+        min-height: 55px;
+    }
+}
+
+/* حالة التحميل */
+.multi-select-loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+    .multi-select-loading::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        right: 2rem;
+        width: 16px;
+        height: 16px;
+        border: 2px solid #667eea;
+        border-top: 2px solid transparent;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* حالة الخطأ */
+.multi-select-error {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+}
+
+.multi-select-error-message {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* حالة النجاح */
+.multi-select-success {
+    border-color: #28a745 !important;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25) !important;
+}
+
+/* تحسين البحث داخل القائمة */
+.multi-select-search {
+    padding: 0.75rem;
+    border-bottom: 1px solid #e9ecef;
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 1;
+}
+
+    .multi-select-search input {
+        width: 100%;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        padding: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+        .multi-select-search input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.1rem rgba(102, 126, 234, 0.25);
+        }
+
+/* رسالة عدم وجود نتائج */
+.multi-select-no-results {
+    padding: 2rem;
+    text-align: center;
+    color: #6c757d;
+    font-style: italic;
+}
+
+/* تحسين عداد الاختيارات */
+.multi-select-counter {
+    background: #667eea;
+    color: white;
+    border-radius: 12px;
+    padding: 0.2rem 0.6rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-left: 0.5rem;
+}
+
+/* تحسين زر مسح الكل */
+.multi-select-clear-all {
+    background: none;
+    border: none;
+    color: #6c757d;
+    cursor: pointer;
+    font-size: 0.8rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+    .multi-select-clear-all:hover {
+        background: #f8f9fa;
+        color: #495057;
+    }

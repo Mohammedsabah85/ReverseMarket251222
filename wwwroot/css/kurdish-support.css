@@ -1,0 +1,301 @@
+/* 
+ * Kurdish Language Support CSS
+ * دعم اللغة الكردية في جميع أنحاء الموقع
+ */
+
+/* Kurdish Font Stack */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap');
+
+/* Global Kurdish Text Support */
+html[lang="ku"], 
+html[lang="ckb"],
+.kurdish-text,
+[lang="ku"],
+[lang="ckb"] {
+    font-family: 'Noto Sans Arabic', 'Arial Unicode MS', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    direction: rtl;
+    text-align: right;
+}
+
+/* Kurdish Text in Forms */
+input[lang="ku"], 
+input[lang="ckb"],
+textarea[lang="ku"], 
+textarea[lang="ckb"],
+select[lang="ku"], 
+select[lang="ckb"] {
+    font-family: 'Noto Sans Arabic', 'Arial Unicode MS', 'Segoe UI', sans-serif;
+    direction: rtl;
+    text-align: right;
+}
+
+/* Kurdish Text in Buttons */
+button[lang="ku"], 
+button[lang="ckb"],
+.btn[lang="ku"], 
+.btn[lang="ckb"] {
+    font-family: 'Noto Sans Arabic', 'Arial Unicode MS', 'Segoe UI', sans-serif;
+    font-weight: 500;
+}
+
+/* Kurdish Text in Navigation */
+.navbar[lang="ku"], 
+.navbar[lang="ckb"],
+.nav[lang="ku"], 
+.nav[lang="ckb"] {
+    direction: rtl;
+}
+
+.navbar[lang="ku"] .nav-link, 
+.navbar[lang="ckb"] .nav-link {
+    font-family: 'Noto Sans Arabic', 'Arial Unicode MS', 'Segoe UI', sans-serif;
+    font-weight: 500;
+}
+
+/* Kurdish Text in Cards and Content */
+.card[lang="ku"], 
+.card[lang="ckb"] {
+    direction: rtl;
+    text-align: right;
+}
+
+.card[lang="ku"] .card-title, 
+.card[lang="ckb"] .card-title,
+.card[lang="ku"] .card-text, 
+.card[lang="ckb"] .card-text {
+    font-family: 'Noto Sans Arabic', 'Arial Unicode MS', 'Segoe UI', sans-serif;
+}
+
+/* Kurdish Text in Tables */
+table[lang="ku"], 
+table[lang="ckb"] {
+    direction: rtl;
+}
+
+table[lang="ku"] th, 
+table[lang="ckb"] th,
+table[lang="ku"] td, 
+table[lang="ckb"] td {
+    font-family: 'Noto Sans Arabic', 'Arial Unicode MS', 'Segoe UI', sans-serif;
+    text-align: right;
+}
+
+/* Kurdish Text in Modals */
+.modal[lang="ku"], 
+.modal[lang="ckb"] {
+    direction: rtl;
+}
+
+.modal[lang="ku"] .modal-title, 
+.modal[lang="ckb"] .modal-title,
+.modal[lang="ku"] .modal-body, 
+.modal[lang="ckb"] .modal-body {
+    font-family: 'Noto Sans Arabic', 'Arial Unicode MS', 'Segoe UI', sans-serif;
+    text-align: right;
+}
+
+/* Kurdish Text in Alerts */
+.alert[lang="ku"], 
+.alert[lang="ckb"] {
+    font-family: 'Noto Sans Arabic', 'Arial Unicode MS', 'Segoe UI', sans-serif;
+    direction: rtl;
+    text-align: right;
+}
+
+/* Kurdish Text in Dropdowns */
+.dropdown-menu[lang="ku"], 
+.dropdown-menu[lang="ckb"] {
+    direction: rtl;
+}
+
+.dropdown-menu[lang="ku"] .dropdown-item, 
+.dropdown-menu[lang="ckb"] .dropdown-item {
+    font-family: 'Noto Sans Arabic', 'Arial Unicode MS', 'Segoe UI', sans-serif;
+    text-align: right;
+}
+
+/* Kurdish Text in Breadcrumbs */
+.breadcrumb[lang="ku"], 
+.breadcrumb[lang="ckb"] {
+    direction: rtl;
+}
+
+.breadcrumb[lang="ku"] .breadcrumb-item, 
+.breadcrumb[lang="ckb"] .breadcrumb-item {
+    font-family: 'Noto Sans Arabic', 'Arial Unicode MS', 'Segoe UI', sans-serif;
+}
+
+/* Kurdish Text in Pagination */
+.pagination[lang="ku"], 
+.pagination[lang="ckb"] {
+    direction: rtl;
+}
+
+.pagination[lang="ku"] .page-link, 
+.pagination[lang="ckb"] .page-link {
+    font-family: 'Noto Sans Arabic', 'Arial Unicode MS', 'Segoe UI', sans-serif;
+}
+
+/* Mobile Responsive Kurdish Support */
+@media (max-width: 768px) {
+    html[lang="ku"], 
+    html[lang="ckb"] {
+        font-size: 14px;
+    }
+    
+    .kurdish-text,
+    [lang="ku"],
+    [lang="ckb"] {
+        font-size: 0.9rem;
+        line-height: 1.6;
+    }
+    
+    /* Better spacing for Kurdish text on mobile */
+    input[lang="ku"], 
+    input[lang="ckb"],
+    textarea[lang="ku"], 
+    textarea[lang="ckb"] {
+        padding: 0.75rem;
+        font-size: 0.9rem;
+    }
+    
+    /* Kurdish buttons on mobile */
+    button[lang="ku"], 
+    button[lang="ckb"],
+    .btn[lang="ku"], 
+    .btn[lang="ckb"] {
+        font-size: 0.85rem;
+        padding: 0.5rem 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    html[lang="ku"], 
+    html[lang="ckb"] {
+        font-size: 13px;
+    }
+    
+    .kurdish-text,
+    [lang="ku"],
+    [lang="ckb"] {
+        font-size: 0.85rem;
+        line-height: 1.5;
+    }
+    
+    /* Smaller Kurdish text on very small screens */
+    input[lang="ku"], 
+    input[lang="ckb"],
+    textarea[lang="ku"], 
+    textarea[lang="ckb"] {
+        font-size: 0.85rem;
+        padding: 0.6rem;
+    }
+    
+    button[lang="ku"], 
+    button[lang="ckb"],
+    .btn[lang="ku"], 
+    .btn[lang="ckb"] {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.8rem;
+    }
+}
+
+/* Kurdish Number Support */
+.kurdish-numbers,
+[lang="ku"] .number,
+[lang="ckb"] .number {
+    font-family: 'Noto Sans Arabic', 'Arial Unicode MS', monospace;
+    direction: ltr;
+    display: inline-block;
+}
+
+/* Kurdish Date Support */
+.kurdish-date,
+[lang="ku"] .date,
+[lang="ckb"] .date {
+    font-family: 'Noto Sans Arabic', 'Arial Unicode MS', 'Segoe UI', sans-serif;
+    direction: rtl;
+}
+
+/* Kurdish Text Selection */
+[lang="ku"]::selection,
+[lang="ckb"]::selection {
+    background-color: rgba(179, 150, 45, 0.3);
+    color: #2c3e50;
+}
+
+/* Kurdish Placeholder Text */
+input[lang="ku"]::placeholder,
+input[lang="ckb"]::placeholder,
+textarea[lang="ku"]::placeholder,
+textarea[lang="ckb"]::placeholder {
+    font-family: 'Noto Sans Arabic', 'Arial Unicode MS', 'Segoe UI', sans-serif;
+    color: #6c757d;
+    opacity: 0.8;
+}
+
+/* Kurdish Focus States */
+input[lang="ku"]:focus,
+input[lang="ckb"]:focus,
+textarea[lang="ku"]:focus,
+textarea[lang="ckb"]:focus,
+select[lang="ku"]:focus,
+select[lang="ckb"]:focus {
+    border-color: #b3962d;
+    box-shadow: 0 0 0 0.2rem rgba(179, 150, 45, 0.25);
+}
+
+/* Kurdish Error Messages */
+.text-danger[lang="ku"],
+.text-danger[lang="ckb"],
+.invalid-feedback[lang="ku"],
+.invalid-feedback[lang="ckb"] {
+    font-family: 'Noto Sans Arabic', 'Arial Unicode MS', 'Segoe UI', sans-serif;
+    direction: rtl;
+    text-align: right;
+}
+
+/* Kurdish Success Messages */
+.text-success[lang="ku"],
+.text-success[lang="ckb"],
+.valid-feedback[lang="ku"],
+.valid-feedback[lang="ckb"] {
+    font-family: 'Noto Sans Arabic', 'Arial Unicode MS', 'Segoe UI', sans-serif;
+    direction: rtl;
+    text-align: right;
+}
+
+/* Kurdish Loading Text */
+.loading-text[lang="ku"],
+.loading-text[lang="ckb"] {
+    font-family: 'Noto Sans Arabic', 'Arial Unicode MS', 'Segoe UI', sans-serif;
+    direction: rtl;
+}
+
+/* Kurdish Tooltip Support */
+.tooltip[lang="ku"] .tooltip-inner,
+.tooltip[lang="ckb"] .tooltip-inner {
+    font-family: 'Noto Sans Arabic', 'Arial Unicode MS', 'Segoe UI', sans-serif;
+    direction: rtl;
+    text-align: right;
+}
+
+/* Kurdish Popover Support */
+.popover[lang="ku"] .popover-body,
+.popover[lang="ckb"] .popover-body,
+.popover[lang="ku"] .popover-header,
+.popover[lang="ckb"] .popover-header {
+    font-family: 'Noto Sans Arabic', 'Arial Unicode MS', 'Segoe UI', sans-serif;
+    direction: rtl;
+    text-align: right;
+}
+
+/* Print Support for Kurdish */
+@media print {
+    [lang="ku"],
+    [lang="ckb"] {
+        font-family: 'Noto Sans Arabic', 'Arial Unicode MS', serif;
+        font-size: 12pt;
+        line-height: 1.4;
+    }
+}

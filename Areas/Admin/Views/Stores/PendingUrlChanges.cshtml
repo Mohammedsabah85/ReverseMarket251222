@@ -1,0 +1,453 @@
+﻿@model List<ApplicationUser>
+@{
+    ViewData["Title"] = "الروابط المعلقة";
+
+    // حساب إجمالي الروابط المعلقة
+    int totalPendingUrls = Model.Sum(s =>
+        (s.PendingUrl1Status == "Pending" ? 1 : 0) +
+        (s.PendingUrl2Status == "Pending" ? 1 : 0) +
+        (s.PendingUrl3Status == "Pending" ? 1 : 0));
+}
+
+@functions {
+    string TruncateUrl(string url, int maxLength)
+    {
+        if (string.IsNullOrEmpty(url)) return "";
+        return url.Length > maxLength ? url.Substring(0, maxLength) + "..." : url;
+    }
+
+    int GetPendingCount(ApplicationUser store)
+    {
+        return (store.PendingUrl1Status == "Pending" ? 1 : 0) +
+               (store.PendingUrl2Status == "Pending" ? 1 : 0) +
+               (store.PendingUrl3Status == "Pending" ? 1 : 0);
+    }
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3>
+        <i class="fas fa-link me-2"></i>
+        الروابط المعلقة - بانتظار المراجعة
+    </h3>
+    <a href="/Admin/Stores/PendingApproval" class="btn btn-outline-primary">
+        <i class="fas fa-store me-2"></i>
+        المتاجر المعلقة
+    </a>
+</div>
+
+<div class="card-admin">
+    <div class="card-body">
+        @if (Model.Any())
+        {
+            <div class="alert alert-info d-flex align-items-center">
+                <i class="fas fa-info-circle me-3 fa-lg"></i>
+                <div>
+                    <strong>@Model.Count</strong> متجر لديه روابط معلقة
+                    <span class="mx-2">|</span>
+                    إجمالي الروابط المعلقة: <strong>@totalPendingUrls</strong>
+                </div>
+            </div>
+
+            @foreach (var store in Model)
+            {
+                var pendingCount = GetPendingCount(store);
+
+                <div class="card mb-4 shadow-sm">
+                    <!-- رأس البطاقة - معلومات المتجر -->
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-1">
+                                <i class="fas fa-store text-primary me-2"></i>
+                                @store.StoreName
+                            </h5>
+                            <small class="text-muted">
+                                <i class="fas fa-user me-1"></i>
+                                @store.FirstName @store.LastName
+                                <span class="mx-2">|</span>
+                                <i class="fas fa-phone me-1"></i>
+                                @store.PhoneNumber
+                            </small>
+                        </div>
+                        <div>
+                            <span class="badge bg-warning text-dark fs-6">
+                                <i class="fas fa-clock me-1"></i>
+                                @pendingCount رابط معلق
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="card-body">
+                        <!-- جدول الروابط -->
+                        <div class="table-responsive">
+                            <table class="table table-bordered mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 80px;" class="text-center">#</th>
+                                        <th>الرابط الحالي</th>
+                                        <th>الرابط الجديد (المعلق)</th>
+                                        <th style="width: 120px;" class="text-center">تاريخ التقديم</th>
+                                        <th style="width: 200px;" class="text-center">الإجراء</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- الرابط الأول -->
+                                    <tr class="@(store.PendingUrl1Status == "Pending" ? "table-warning" : "")">
+                                        <td class="text-center fw-bold">1</td>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(store.WebsiteUrl1))
+                                            {
+                                                <a href="@store.WebsiteUrl1" target="_blank" class="text-decoration-none">
+                                                    <i class="fas fa-external-link-alt me-1"></i>
+                                                    @TruncateUrl(store.WebsiteUrl1, 40)
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted fst-italic">لا يوجد</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (store.PendingUrl1Status == "Pending" && !string.IsNullOrEmpty(store.PendingWebsiteUrl1))
+                                            {
+                                                <a href="@store.PendingWebsiteUrl1" target="_blank" class="text-warning fw-bold text-decoration-none">
+                                                    <i class="fas fa-clock me-1"></i>
+                                                    @TruncateUrl(store.PendingWebsiteUrl1, 40)
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">-</span>
+                                            }
+                                        </td>
+                                        <td class="text-center">
+                                            @if (store.PendingUrl1SubmittedAt.HasValue)
+                                            {
+                                                <small>@store.PendingUrl1SubmittedAt.Value.ToString("dd/MM/yyyy")</small>
+                                                <br />
+                                                <small class="text-muted">@store.PendingUrl1SubmittedAt.Value.ToString("HH:mm")</small>
+                                            }
+                                            else if (store.PendingUrl1Status == "Pending" && store.UpdatedAt.HasValue)
+                                            {
+                                                <small>@store.UpdatedAt.Value.ToString("dd/MM/yyyy")</small>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">-</span>
+                                            }
+                                        </td>
+                                        <td class="text-center">
+                                            @if (store.PendingUrl1Status == "Pending")
+                                            {
+                                                <div class="btn-group btn-group-sm">
+                                                    <form method="post" asp-action="ApproveSingleUrl" style="display:inline;">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="id" value="@store.Id" />
+                                                        <input type="hidden" name="urlNumber" value="1" />
+                                                        <button type="submit" class="btn btn-success btn-sm"
+                                                                onclick="return confirm('هل أنت متأكد من الموافقة على الرابط 1؟')">
+                                                            <i class="fas fa-check"></i> موافقة
+                                                        </button>
+                                                    </form>
+                                                    <button type="button" class="btn btn-danger btn-sm ms-1"
+                                                            onclick="rejectSingleUrl('@store.Id', 1, '@store.StoreName')">
+                                                        <i class="fas fa-times"></i> رفض
+                                                    </button>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">لا يوجد تعديل</span>
+                                            }
+                                        </td>
+                                    </tr>
+
+                                    <!-- الرابط الثاني -->
+                                    <tr class="@(store.PendingUrl2Status == "Pending" ? "table-warning" : "")">
+                                        <td class="text-center fw-bold">2</td>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(store.WebsiteUrl2))
+                                            {
+                                                <a href="@store.WebsiteUrl2" target="_blank" class="text-decoration-none">
+                                                    <i class="fas fa-external-link-alt me-1"></i>
+                                                    @TruncateUrl(store.WebsiteUrl2, 40)
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted fst-italic">لا يوجد</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (store.PendingUrl2Status == "Pending" && !string.IsNullOrEmpty(store.PendingWebsiteUrl2))
+                                            {
+                                                <a href="@store.PendingWebsiteUrl2" target="_blank" class="text-warning fw-bold text-decoration-none">
+                                                    <i class="fas fa-clock me-1"></i>
+                                                    @TruncateUrl(store.PendingWebsiteUrl2, 40)
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">-</span>
+                                            }
+                                        </td>
+                                        <td class="text-center">
+                                            @if (store.PendingUrl2SubmittedAt.HasValue)
+                                            {
+                                                <small>@store.PendingUrl2SubmittedAt.Value.ToString("dd/MM/yyyy")</small>
+                                                <br />
+                                                <small class="text-muted">@store.PendingUrl2SubmittedAt.Value.ToString("HH:mm")</small>
+                                            }
+                                            else if (store.PendingUrl2Status == "Pending" && store.UpdatedAt.HasValue)
+                                            {
+                                                <small>@store.UpdatedAt.Value.ToString("dd/MM/yyyy")</small>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">-</span>
+                                            }
+                                        </td>
+                                        <td class="text-center">
+                                            @if (store.PendingUrl2Status == "Pending")
+                                            {
+                                                <div class="btn-group btn-group-sm">
+                                                    <form method="post" asp-action="ApproveSingleUrl" style="display:inline;">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="id" value="@store.Id" />
+                                                        <input type="hidden" name="urlNumber" value="2" />
+                                                        <button type="submit" class="btn btn-success btn-sm"
+                                                                onclick="return confirm('هل أنت متأكد من الموافقة على الرابط 2؟')">
+                                                            <i class="fas fa-check"></i> موافقة
+                                                        </button>
+                                                    </form>
+                                                    <button type="button" class="btn btn-danger btn-sm ms-1"
+                                                            onclick="rejectSingleUrl('@store.Id', 2, '@store.StoreName')">
+                                                        <i class="fas fa-times"></i> رفض
+                                                    </button>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">لا يوجد تعديل</span>
+                                            }
+                                        </td>
+                                    </tr>
+
+                                    <!-- الرابط الثالث -->
+                                    <tr class="@(store.PendingUrl3Status == "Pending" ? "table-warning" : "")">
+                                        <td class="text-center fw-bold">3</td>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(store.WebsiteUrl3))
+                                            {
+                                                <a href="@store.WebsiteUrl3" target="_blank" class="text-decoration-none">
+                                                    <i class="fas fa-external-link-alt me-1"></i>
+                                                    @TruncateUrl(store.WebsiteUrl3, 40)
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted fst-italic">لا يوجد</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (store.PendingUrl3Status == "Pending" && !string.IsNullOrEmpty(store.PendingWebsiteUrl3))
+                                            {
+                                                <a href="@store.PendingWebsiteUrl3" target="_blank" class="text-warning fw-bold text-decoration-none">
+                                                    <i class="fas fa-clock me-1"></i>
+                                                    @TruncateUrl(store.PendingWebsiteUrl3, 40)
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">-</span>
+                                            }
+                                        </td>
+                                        <td class="text-center">
+                                            @if (store.PendingUrl3SubmittedAt.HasValue)
+                                            {
+                                                <small>@store.PendingUrl3SubmittedAt.Value.ToString("dd/MM/yyyy")</small>
+                                                <br />
+                                                <small class="text-muted">@store.PendingUrl3SubmittedAt.Value.ToString("HH:mm")</small>
+                                            }
+                                            else if (store.PendingUrl3Status == "Pending" && store.UpdatedAt.HasValue)
+                                            {
+                                                <small>@store.UpdatedAt.Value.ToString("dd/MM/yyyy")</small>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">-</span>
+                                            }
+                                        </td>
+                                        <td class="text-center">
+                                            @if (store.PendingUrl3Status == "Pending")
+                                            {
+                                                <div class="btn-group btn-group-sm">
+                                                    <form method="post" asp-action="ApproveSingleUrl" style="display:inline;">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="id" value="@store.Id" />
+                                                        <input type="hidden" name="urlNumber" value="3" />
+                                                        <button type="submit" class="btn btn-success btn-sm"
+                                                                onclick="return confirm('هل أنت متأكد من الموافقة على الرابط 3؟')">
+                                                            <i class="fas fa-check"></i> موافقة
+                                                        </button>
+                                                    </form>
+                                                    <button type="button" class="btn btn-danger btn-sm ms-1"
+                                                            onclick="rejectSingleUrl('@store.Id', 3, '@store.StoreName')">
+                                                        <i class="fas fa-times"></i> رفض
+                                                    </button>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">لا يوجد تعديل</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- أزرار الإجراءات الجماعية -->
+                        @if (pendingCount > 1)
+                        {
+                            <div class="mt-3 pt-3 border-top d-flex justify-content-end gap-2">
+                                <form method="post" asp-action="ApproveAllUrls" style="display:inline;">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@store.Id" />
+                                    <button type="submit" class="btn btn-success"
+                                            onclick="return confirm('هل أنت متأكد من الموافقة على جميع الروابط المعلقة (@pendingCount)؟')">
+                                        <i class="fas fa-check-double me-1"></i>
+                                        موافقة على الكل (@pendingCount)
+                                    </button>
+                                </form>
+                                <button type="button" class="btn btn-outline-danger"
+                                        onclick="rejectAllUrls('@store.Id', '@store.StoreName')">
+                                    <i class="fas fa-times-circle me-1"></i>
+                                    رفض الكل
+                                </button>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+                <h5 class="text-muted">لا توجد روابط معلقة</h5>
+                <p class="text-muted">جميع الروابط تمت مراجعتها</p>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .card-admin {
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .table-warning {
+        background-color: rgba(255, 193, 7, 0.15) !important;
+    }
+
+    .btn-group .btn {
+        margin: 0 2px;
+    }
+
+    .card {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .card-header {
+        border-bottom: 2px solid #e9ecef;
+    }
+
+    .table th {
+        background-color: #f8f9fa;
+        font-weight: 600;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        // رفض رابط واحد
+        function rejectSingleUrl(id, urlNumber, storeName) {
+            var reason = prompt('سبب رفض الرابط ' + urlNumber + ' لمتجر "' + storeName + '":');
+            if (reason && reason.trim()) {
+                var form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/Admin/Stores/RejectSingleUrl';
+
+                var idInput = document.createElement('input');
+                idInput.type = 'hidden';
+                idInput.name = 'id';
+                idInput.value = id;
+                form.appendChild(idInput);
+
+                var urlNumberInput = document.createElement('input');
+                urlNumberInput.type = 'hidden';
+                urlNumberInput.name = 'urlNumber';
+                urlNumberInput.value = urlNumber;
+                form.appendChild(urlNumberInput);
+
+                var reasonInput = document.createElement('input');
+                reasonInput.type = 'hidden';
+                reasonInput.name = 'reason';
+                reasonInput.value = reason;
+                form.appendChild(reasonInput);
+
+                var token = document.querySelector('input[name="__RequestVerificationToken"]');
+                if (token) {
+                    var tokenInput = document.createElement('input');
+                    tokenInput.type = 'hidden';
+                    tokenInput.name = '__RequestVerificationToken';
+                    tokenInput.value = token.value;
+                    form.appendChild(tokenInput);
+                }
+
+                document.body.appendChild(form);
+                form.submit();
+            } else if (reason !== null) {
+                alert('يجب إدخال سبب الرفض');
+            }
+        }
+
+        // رفض جميع الروابط
+        function rejectAllUrls(id, storeName) {
+            var reason = prompt('سبب رفض جميع الروابط لمتجر "' + storeName + '":');
+            if (reason && reason.trim()) {
+                var form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/Admin/Stores/RejectAllUrls';
+
+                var idInput = document.createElement('input');
+                idInput.type = 'hidden';
+                idInput.name = 'id';
+                idInput.value = id;
+                form.appendChild(idInput);
+
+                var reasonInput = document.createElement('input');
+                reasonInput.type = 'hidden';
+                reasonInput.name = 'reason';
+                reasonInput.value = reason;
+                form.appendChild(reasonInput);
+
+                var token = document.querySelector('input[name="__RequestVerificationToken"]');
+                if (token) {
+                    var tokenInput = document.createElement('input');
+                    tokenInput.type = 'hidden';
+                    tokenInput.name = '__RequestVerificationToken';
+                    tokenInput.value = token.value;
+                    form.appendChild(tokenInput);
+                }
+
+                document.body.appendChild(form);
+                form.submit();
+            } else if (reason !== null) {
+                alert('يجب إدخال سبب الرفض');
+            }
+        }
+    </script>
+}

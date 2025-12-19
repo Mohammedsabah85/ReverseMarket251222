@@ -1,0 +1,865 @@
+@using ReverseMarket.Controllers
+@using ReverseMarket.Models.Identity
+@model EditProfileViewModel
+@{
+    ViewData["Title"] = "تعديل الملف الشخصي";
+    var isSeller = Model.UserType == UserType.Seller;
+    var isBuyer = Model.UserType == UserType.Buyer;
+}
+
+<div class="container-custom">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card-custom">
+                <div class="text-center mb-4">
+                    <i class="fas fa-user-edit fa-3x text-primary mb-3"></i>
+                    <h1 class="h3 text-primary">تعديل الملف الشخصي</h1>
+                    <p class="text-muted">قم بتحديث معلوماتك الشخصية</p>
+
+                    @* عرض نوع المستخدم *@
+                    <div class="mt-2">
+                        @if (isSeller)
+                        {
+                            <span class="badge bg-success fs-6">
+                                <i class="fas fa-store me-1"></i>
+                                حساب بائع
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-primary fs-6">
+                                <i class="fas fa-shopping-cart me-1"></i>
+                                حساب مشتري
+                            </span>
+                        }
+                    </div>
+                </div>
+
+                <form asp-action="Edit" method="post" id="editProfileForm" enctype="multipart/form-data">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <!-- Profile Image Section -->
+                    <div class="form-section">
+                        <h5 class="section-title">
+                            <i class="fas fa-camera me-2"></i>
+                            الصورة الشخصية
+                        </h5>
+
+                        <div class="row justify-content-center">
+                            <div class="col-md-6 text-center">
+                                <div class="profile-image-container mb-3">
+                                    @if (!string.IsNullOrEmpty(Model.ProfileImage))
+                                    {
+                                        <img src="@Model.ProfileImage"
+                                             id="profileImagePreview"
+                                             class="rounded-circle profile-preview"
+                                             alt="صورتك الشخصية">
+                                    }
+                                    else
+                                    {
+                                        <div id="profileImagePreview"
+                                             class="bg-primary text-white rounded-circle profile-preview d-inline-flex align-items-center justify-content-center">
+                                            <i class="fas fa-user fa-4x"></i>
+                                        </div>
+                                    }
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="profileImageInput" class="btn btn-outline-primary">
+                                        <i class="fas fa-upload me-2"></i>
+                                        اختر صورة جديدة
+                                    </label>
+                                    <input type="file"
+                                           id="profileImageInput"
+                                           name="ProfileImageFile"
+                                           accept="image/*"
+                                           class="d-none"
+                                           onchange="previewImage(this)">
+                                </div>
+
+                                <small class="text-muted d-block">
+                                    الحجم الأقصى: 5 ميجابايت<br>
+                                    الصيغ المدعومة: JPG, PNG, GIF
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Personal Information -->
+                    <div class="form-section">
+                        <h5 class="section-title">
+                            <i class="fas fa-user me-2"></i>
+                            المعلومات الشخصية
+                        </h5>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="FirstName" class="form-label">الاسم الأول *</label>
+                                <input asp-for="FirstName" class="form-control" required>
+                                <span asp-validation-for="FirstName" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="LastName" class="form-label">اسم العائلة *</label>
+                                <input asp-for="LastName" class="form-control" required>
+                                <span asp-validation-for="LastName" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="Email" class="form-label">البريد الإلكتروني</label>
+                                <input asp-for="Email" type="email" class="form-control" placeholder="اختياري">
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="PhoneNumber" class="form-label">رقم الهاتف *</label>
+                                <input asp-for="PhoneNumber" class="form-control" disabled>
+                                <small class="form-text text-muted">لا يمكن تغيير رقم الهاتف</small>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label asp-for="DateOfBirth" class="form-label">تاريخ الميلاد *</label>
+                                <input asp-for="DateOfBirth" type="date" class="form-control" required>
+                                <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label asp-for="Gender" class="form-label">الجنس *</label>
+                                <select asp-for="Gender" class="form-control" required>
+                                    <option value="">اختر الجنس</option>
+                                    <option value="ذكر">ذكر</option>
+                                    <option value="أنثى">أنثى</option>
+                                </select>
+                                <span asp-validation-for="Gender" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Location Information -->
+                    <div class="form-section">
+                        <h5 class="section-title">
+                            <i class="fas fa-map-marker-alt me-2"></i>
+                            معلومات الموقع
+                        </h5>
+
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label asp-for="City" class="form-label">المحافظة *</label>
+                                <select asp-for="City" class="form-control" required>
+                                    <option value="">اختر المحافظة</option>
+                                    <option value="بغداد">بغداد</option>
+                                    <option value="البصرة">البصرة</option>
+                                    <option value="أربيل">أربيل</option>
+                                    <option value="النجف">النجف</option>
+                                    <option value="كربلاء">كربلاء</option>
+                                    <option value="الموصل">الموصل</option>
+                                    <option value="السليمانية">السليمانية</option>
+                                    <option value="بابل">بابل</option>
+                                    <option value="دهوك">دهوك</option>
+                                    <option value="كركوك">كركوك</option>
+                                    <option value="الأنبار">الأنبار</option>
+                                    <option value="ديالى">ديالى</option>
+                                    <option value="صلاح الدين">صلاح الدين</option>
+                                    <option value="واسط">واسط</option>
+                                    <option value="ذي قار">ذي قار</option>
+                                    <option value="المثنى">المثنى</option>
+                                    <option value="القادسية">القادسية</option>
+                                    <option value="ميسان">ميسان</option>
+                                </select>
+                                <span asp-validation-for="City" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label asp-for="District" class="form-label">المنطقة *</label>
+                                <input asp-for="District" class="form-control" placeholder="مثال: الكرادة، المعقل" required>
+                                <span asp-validation-for="District" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label asp-for="Location" class="form-label">العنوان التفصيلي</label>
+                                <input asp-for="Location" class="form-control" placeholder="الشارع، رقم البناء (اختياري)">
+                            </div>
+                        </div>
+                    </div>
+
+                    @* ═══════════════════════════════════════════════════════════════════════════════ *@
+                    @* ✅ قسم تفضيلات التواصل - للمشترين فقط *@
+                    @* ═══════════════════════════════════════════════════════════════════════════════ *@
+                    @if (isBuyer)
+                    {
+                        <div class="form-section">
+                            <h5 class="section-title">
+                                <i class="fas fa-address-book me-2"></i>
+                                تفضيلات التواصل
+                            </h5>
+
+                            <div class="alert alert-info mb-4">
+                                <i class="fas fa-info-circle me-2"></i>
+                                حدد طرق التواصل التي تفضلها. سيتمكن البائعون من التواصل معك فقط عبر الوسائل المفعّلة.
+                            </div>
+
+                            <div class="row g-4">
+                                <!-- وسائل التواصل الأساسية -->
+                                <div class="col-12">
+                                    <label class="form-label fw-bold mb-3">وسائل التواصل المتاحة:</label>
+
+                                    <div class="row g-3">
+                                        <!-- الاتصال الهاتفي -->
+                                        <div class="col-md-4 col-6">
+                                            <div class="contact-option-card @(Model.AllowPhoneCall ? "active" : "")">
+                                                <div class="form-check form-switch">
+                                                    <input asp-for="AllowPhoneCall" class="form-check-input contact-toggle" type="checkbox" role="switch" id="allowPhoneCallSwitch">
+                                                    <label class="form-check-label" for="allowPhoneCallSwitch">
+                                                        <i class="fas fa-phone-alt contact-icon text-primary"></i>
+                                                        <span>الاتصال الهاتفي</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- واتساب -->
+                                        <div class="col-md-4 col-6">
+                                            <div class="contact-option-card @(Model.AllowWhatsApp ? "active" : "")">
+                                                <div class="form-check form-switch">
+                                                    <input asp-for="AllowWhatsApp" class="form-check-input contact-toggle" type="checkbox" role="switch" id="allowWhatsAppSwitch">
+                                                    <label class="form-check-label" for="allowWhatsAppSwitch">
+                                                        <i class="fab fa-whatsapp contact-icon text-success"></i>
+                                                        <span>واتساب</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- البريد الإلكتروني -->
+                                        <div class="col-md-4 col-6">
+                                            <div class="contact-option-card @(Model.AllowEmail ? "active" : "")">
+                                                <div class="form-check form-switch">
+                                                    <input asp-for="AllowEmail" class="form-check-input contact-toggle" type="checkbox" role="switch" id="allowEmailSwitch">
+                                                    <label class="form-check-label" for="allowEmailSwitch">
+                                                        <i class="fas fa-envelope contact-icon text-info"></i>
+                                                        <span>البريد الإلكتروني</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- الرسائل النصية -->
+                                        <div class="col-md-4 col-6">
+                                            <div class="contact-option-card @(Model.AllowSMS ? "active" : "")">
+                                                <div class="form-check form-switch">
+                                                    <input asp-for="AllowSMS" class="form-check-input contact-toggle" type="checkbox" role="switch" id="allowSMSSwitch">
+                                                    <label class="form-check-label" for="allowSMSSwitch">
+                                                        <i class="fas fa-sms contact-icon text-warning"></i>
+                                                        <span>رسائل SMS</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- الدردشة الداخلية -->
+                                        <div class="col-md-4 col-6">
+                                            <div class="contact-option-card @(Model.AllowInAppChat ? "active" : "")">
+                                                <div class="form-check form-switch">
+                                                    <input asp-for="AllowInAppChat" class="form-check-input contact-toggle" type="checkbox" role="switch" id="allowInAppChatSwitch">
+                                                    <label class="form-check-label" for="allowInAppChatSwitch">
+                                                        <i class="fas fa-comments contact-icon text-secondary"></i>
+                                                        <span>الدردشة الداخلية</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- تحذير إذا لم يتم اختيار أي وسيلة -->
+                                    <div id="noContactMethodWarning" class="alert alert-warning mt-3" style="display: none;">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>
+                                        <strong>تنبيه:</strong> يجب تفعيل وسيلة تواصل واحدة على الأقل حتى يتمكن البائعون من التواصل معك.
+                                    </div>
+                                </div>
+
+                                <!-- معلومات إضافية للتواصل -->
+                                <div class="col-md-6" id="whatsappAlternativeSection">
+                                    <label asp-for="AlternativeWhatsApp" class="form-label">
+                                        <i class="fab fa-whatsapp text-success me-1"></i>
+                                        رقم واتساب بديل
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">+964</span>
+                                        <input asp-for="AlternativeWhatsApp" class="form-control" placeholder="اختياري - إذا كان مختلفاً عن رقم الهاتف">
+                                    </div>
+                                    <small class="form-text text-muted">اتركه فارغاً لاستخدام رقم الهاتف الأساسي</small>
+                                    <span asp-validation-for="AlternativeWhatsApp" class="text-danger"></span>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label asp-for="PreferredContactTime" class="form-label">
+                                        <i class="fas fa-clock text-primary me-1"></i>
+                                        أفضل وقت للاتصال
+                                    </label>
+                                    <select asp-for="PreferredContactTime" class="form-control">
+                                        <option value="">-- اختر الوقت المفضل --</option>
+                                        <option value="صباحاً (8 ص - 12 ظ)">صباحاً (8 ص - 12 ظ)</option>
+                                        <option value="ظهراً (12 ظ - 4 م)">ظهراً (12 ظ - 4 م)</option>
+                                        <option value="مساءً (4 م - 8 م)">مساءً (4 م - 8 م)</option>
+                                        <option value="ليلاً (8 م - 11 م)">ليلاً (8 م - 11 م)</option>
+                                        <option value="أي وقت">أي وقت</option>
+                                        <option value="أيام العمل فقط">أيام العمل فقط</option>
+                                        <option value="عطلة نهاية الأسبوع فقط">عطلة نهاية الأسبوع فقط</option>
+                                    </select>
+                                    <span asp-validation-for="PreferredContactTime" class="text-danger"></span>
+                                </div>
+
+                                <div class="col-12">
+                                    <label asp-for="ContactNotes" class="form-label">
+                                        <i class="fas fa-sticky-note text-warning me-1"></i>
+                                        ملاحظات إضافية للتواصل
+                                    </label>
+                                    <textarea asp-for="ContactNotes" class="form-control" rows="2"
+                                              placeholder="مثال: يفضل التواصل عبر الواتساب أولاً، أو لا تتصل بعد الساعة 9 مساءً..."></textarea>
+                                    <small class="form-text text-muted">
+                                        <span id="contactNotesCount">0</span>/500 حرف
+                                    </small>
+                                    <span asp-validation-for="ContactNotes" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    @* ✅ قسم معلومات المتجر - للبائعين فقط *@
+                    @if (isSeller)
+                    {
+                        <div class="form-section">
+                            <h5 class="section-title">
+                                <i class="fas fa-store me-2"></i>
+                                معلومات المتجر
+                            </h5>
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label asp-for="StoreName" class="form-label">اسم المتجر *</label>
+                                    <input asp-for="StoreName" class="form-control" required>
+                                    <span asp-validation-for="StoreName" class="text-danger"></span>
+                                </div>
+
+                                <div class="col-12">
+                                    <label asp-for="StoreDescription" class="form-label">وصف المتجر</label>
+                                    <textarea asp-for="StoreDescription" class="form-control" rows="3"
+                                              placeholder="اكتب وصفاً مختصراً عن متجرك وخدماتك"></textarea>
+                                    <span asp-validation-for="StoreDescription" class="text-danger"></span>
+                                </div>
+
+                                @* روابط المتجر مع تنبيه الموافقة *@
+                                <div class="col-12">
+                                    @if (Model.HasPendingUrlChanges)
+                                    {
+                                        <div class="alert alert-warning">
+                                            <i class="fas fa-clock me-2"></i>
+                                            <strong>ملاحظة:</strong> لديك روابط معلقة بانتظار موافقة الإدارة
+                                        </div>
+                                    }
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label asp-for="WebsiteUrl1" class="form-label">رابط الموقع الأول</label>
+                                    <input asp-for="WebsiteUrl1" class="form-control" placeholder="https://example.com">
+                                    <span asp-validation-for="WebsiteUrl1" class="text-danger"></span>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label asp-for="WebsiteUrl2" class="form-label">رابط الموقع الثاني</label>
+                                    <input asp-for="WebsiteUrl2" class="form-control" placeholder="https://facebook.com/store">
+                                    <span asp-validation-for="WebsiteUrl2" class="text-danger"></span>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label asp-for="WebsiteUrl3" class="form-label">رابط الموقع الثالث</label>
+                                    <input asp-for="WebsiteUrl3" class="form-control" placeholder="https://instagram.com/store">
+                                    <span asp-validation-for="WebsiteUrl3" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        @* ✅ قسم تخصصات المتجر (الفئات) *@
+                        <div class="form-section">
+                            <h5 class="section-title">
+                                <i class="fas fa-tags me-2"></i>
+                                تخصصات المتجر
+                            </h5>
+
+                            @* عرض الفئات الحالية *@
+                            @if (Model.CurrentStoreCategories != null && Model.CurrentStoreCategories.Any())
+                            {
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold">التخصصات الحالية:</label>
+                                    <div class="current-categories">
+                                        @foreach (var cat in Model.CurrentStoreCategories)
+                                        {
+                                            <div class="badge bg-success me-2 mb-2 p-2">
+                                                <i class="fas fa-check-circle me-1"></i>
+                                                @cat.FullPath
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="alert alert-info mb-4">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    لم يتم تحديد أي تخصصات للمتجر بعد. يرجى إضافة تخصصات لتظهر في نتائج البحث.
+                                </div>
+                            }
+
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>ملاحظة:</strong> اختر التخصصات الدقيقة لمتجرك للحصول على طلبات أكثر دقة.
+                            </div>
+
+                            <div class="row g-3">
+                                <!-- Cascading Category Selection -->
+                                <div class="col-md-4">
+                                    <label for="categorySelect" class="form-label">الفئة الأساسية</label>
+                                    <select id="categorySelect" class="form-control">
+                                        <option value="">اختر الفئة الأساسية</option>
+                                        @foreach (var category in ViewBag.Categories as List<Category>)
+                                        {
+                                            <option value="@category.Id">@category.Name</option>
+                                        }
+                                    </select>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label for="subCategory1Select" class="form-label">الفئة الفرعية الأولى</label>
+                                    <select id="subCategory1Select" class="form-control" disabled>
+                                        <option value="">اختر الفئة الفرعية الأولى</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label for="subCategory2Select" class="form-label">التخصص الدقيق</label>
+                                    <select id="subCategory2Select" class="mobile-multi-select" disabled multiple
+                                            data-placeholder="اختر التخصصات الدقيقة..."
+                                            data-search-placeholder="البحث في التخصصات..."
+                                            data-no-results="لا توجد تخصصات متاحة"
+                                            data-clear-all="مسح جميع الاختيارات"
+                                            data-max-tags="3"
+                                            data-enable-search="true"
+                                            data-enable-clear-all="true">
+                                        <option value="">اختر التخصص الدقيق</option>
+                                    </select>
+                                    <div class="form-text">
+                                        <i class="fas fa-touch me-1"></i>
+                                        اضغط لاختيار تخصصات متعددة
+                                    </div>
+                                </div>
+
+                                <!-- Hidden field to store selected SubCategory2 IDs -->
+                                <input type="hidden" asp-for="StoreCategories" id="storeCategoriesHidden" />
+
+                                <div class="col-12" id="selectedCategoriesDisplay">
+                                    <div class="alert alert-success" style="display: none;">
+                                        <strong><i class="fas fa-check-circle me-2"></i>التخصصات المختارة الجديدة:</strong>
+                                        <div id="selectedCategoriesList" class="mt-2"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Submit Section -->
+                    <div class="form-section">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="/Profile" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>
+                                إلغاء
+                            </a>
+                            <button type="submit" class="btn btn-custom btn-lg" id="submitBtn">
+                                <i class="fas fa-save me-2"></i>
+                                حفظ التعديلات
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-section {
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+        .form-section:last-child {
+            border-bottom: none;
+        }
+
+    .section-title {
+        color: #b3962d;
+        margin-bottom: 1.5rem;
+        font-weight: 600;
+    }
+
+    .profile-image-container {
+        position: relative;
+        display: inline-block;
+    }
+
+    .profile-preview {
+        width: 200px;
+        height: 200px;
+        object-fit: cover;
+        border: 4px solid #b3962d;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+        .profile-preview.d-inline-flex {
+            display: inline-flex !important;
+        }
+
+    .current-categories {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 10px;
+        border: 1px solid #e9ecef;
+    }
+
+    #subCategory2Select {
+        min-height: 100px;
+    }
+
+    #selectedCategoriesList ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    #selectedCategoriesList li {
+        padding: 5px 0;
+        border-bottom: 1px dashed #d4edda;
+    }
+
+        #selectedCategoriesList li:last-child {
+            border-bottom: none;
+        }
+
+    /* ═══════════════════════════════════════════════════════════════════════════════ */
+    /* ✅ أنماط قسم تفضيلات التواصل */
+    /* ═══════════════════════════════════════════════════════════════════════════════ */
+    .contact-option-card {
+        background: #f8f9fa;
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        padding: 15px;
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+
+        .contact-option-card:hover {
+            border-color: #b3962d;
+            box-shadow: 0 4px 12px rgba(179, 150, 45, 0.15);
+        }
+
+        .contact-option-card.active {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            border-color: #4caf50;
+        }
+
+        .contact-option-card .form-check-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .contact-option-card .contact-icon {
+            font-size: 1.5rem;
+            width: 35px;
+            text-align: center;
+        }
+
+        .contact-option-card .form-check-input {
+            width: 50px;
+            height: 26px;
+            cursor: pointer;
+        }
+
+            .contact-option-card .form-check-input:checked {
+                background-color: #4caf50;
+                border-color: #4caf50;
+            }
+
+    .contact-toggle:focus {
+        box-shadow: 0 0 0 0.25rem rgba(76, 175, 80, 0.25);
+    }
+
+    /* تأثير عند إيقاف التفعيل */
+    .contact-option-card:not(.active) {
+        opacity: 0.7;
+    }
+
+        .contact-option-card:not(.active) .contact-icon {
+            filter: grayscale(100%);
+        }
+</style>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script>
+        // ✅ متغير لتخزين الفئات المختارة
+        var selectedCategories = new Map();
+
+        // ✅ تحميل الفئات الحالية عند فتح الصفحة
+        @if (Model.CurrentStoreCategories != null && Model.CurrentStoreCategories.Any())
+        {
+                <text>
+                $(document).ready(function() {
+                    @foreach (var cat in Model.CurrentStoreCategories)
+                    {
+                            <text>
+                            selectedCategories.set('@cat.SubCategory2Id', {
+                                id: '@cat.SubCategory2Id',
+                                path: '@cat.FullPath',
+                                subCategory1Id: '0'
+                            });
+                            </text>
+                    }
+                    updateSelectedCategoriesDisplay();
+                });
+                </text>
+        }
+
+        // ✅ معاينة الصورة قبل الرفع
+        function previewImage(input) {
+            const preview = document.getElementById('profileImagePreview');
+            const file = input.files[0];
+
+            if (file) {
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('حجم الصورة كبير جداً! الحد الأقصى 5 ميجابايت');
+                    input.value = '';
+                    return;
+                }
+
+                const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+                if (!allowedTypes.includes(file.type)) {
+                    alert('نوع الملف غير مدعوم! استخدم JPG أو PNG أو GIF');
+                    input.value = '';
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    if (preview.tagName === 'IMG') {
+                        preview.src = e.target.result;
+                    } else {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.id = 'profileImagePreview';
+                        img.className = 'rounded-circle profile-preview';
+                        img.alt = 'صورتك الشخصية';
+                        preview.parentNode.replaceChild(img, preview);
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('editProfileForm');
+            const submitBtn = document.getElementById('submitBtn');
+
+            // ═══════════════════════════════════════════════════════════════════════════════
+            // ✅ معالجة تفضيلات التواصل
+            // ═══════════════════════════════════════════════════════════════════════════════
+            const contactToggles = document.querySelectorAll('.contact-toggle');
+
+            contactToggles.forEach(toggle => {
+                toggle.addEventListener('change', function() {
+                    // تحديث مظهر البطاقة
+                    const card = this.closest('.contact-option-card');
+                    if (this.checked) {
+                        card.classList.add('active');
+                    } else {
+                        card.classList.remove('active');
+                    }
+
+                    // التحقق من وجود وسيلة واحدة على الأقل
+                    checkContactMethods();
+
+                    // إظهار/إخفاء حقل واتساب البديل
+                    const whatsappToggle = document.getElementById('allowWhatsAppSwitch');
+                    const whatsappSection = document.getElementById('whatsappAlternativeSection');
+                    if (whatsappToggle && whatsappSection) {
+                        whatsappSection.style.display = whatsappToggle.checked ? 'block' : 'none';
+                    }
+                });
+            });
+
+            // التحقق من وجود وسيلة تواصل واحدة على الأقل
+            function checkContactMethods() {
+                const warning = document.getElementById('noContactMethodWarning');
+                if (!warning) return;
+
+                const anyEnabled = Array.from(contactToggles).some(t => t.checked);
+                warning.style.display = anyEnabled ? 'none' : 'block';
+            }
+
+            // تشغيل التحقق عند تحميل الصفحة
+            checkContactMethods();
+
+            // إظهار/إخفاء حقل واتساب البديل عند التحميل
+            const whatsappToggle = document.getElementById('allowWhatsAppSwitch');
+            const whatsappSection = document.getElementById('whatsappAlternativeSection');
+            if (whatsappToggle && whatsappSection) {
+                whatsappSection.style.display = whatsappToggle.checked ? 'block' : 'none';
+            }
+
+            // عداد الأحرف لملاحظات التواصل
+            const contactNotes = document.querySelector('[name="ContactNotes"]');
+            const contactNotesCount = document.getElementById('contactNotesCount');
+            if (contactNotes && contactNotesCount) {
+                contactNotesCount.textContent = contactNotes.value.length;
+                contactNotes.addEventListener('input', function() {
+                    contactNotesCount.textContent = this.value.length;
+                    if (this.value.length > 500) {
+                        this.value = this.value.substring(0, 500);
+                        contactNotesCount.textContent = 500;
+                    }
+                });
+            }
+
+            // ═══════════════════════════════════════════════════════════════════════════════
+
+            // Set minimum date for date of birth (18 years ago)
+            const dateInput = document.querySelector('[name="DateOfBirth"]');
+            if (dateInput) {
+                const eighteenYearsAgo = new Date();
+                eighteenYearsAgo.setFullYear(eighteenYearsAgo.getFullYear() - 18);
+                dateInput.max = eighteenYearsAgo.toISOString().split('T')[0];
+
+                const hundredYearsAgo = new Date();
+                hundredYearsAgo.setFullYear(hundredYearsAgo.getFullYear() - 100);
+                dateInput.min = hundredYearsAgo.toISOString().split('T')[0];
+            }
+
+            form.addEventListener('submit', function(e) {
+                // التحقق من وجود وسيلة تواصل واحدة على الأقل (للمشترين)
+                const isBuyer = @(isBuyer ? "true" : "false");
+                if (isBuyer) {
+                    const anyEnabled = Array.from(contactToggles).some(t => t.checked);
+                    if (!anyEnabled) {
+                        e.preventDefault();
+                        alert('يجب تفعيل وسيلة تواصل واحدة على الأقل');
+                        document.getElementById('noContactMethodWarning').style.display = 'block';
+                        return false;
+                    }
+                }
+
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> جاري الحفظ...';
+            });
+
+            // ✅ Cascading dropdowns للفئات
+            $('#categorySelect').change(function() {
+                var categoryId = $(this).val();
+                $('#subCategory1Select').html('<option value="">اختر الفئة الفرعية الأولى</option>').prop('disabled', true);
+                $('#subCategory2Select').html('<option value="">اختر التخصص الدقيق</option>').prop('disabled', true);
+
+                if (categoryId) {
+                    $.get('/Profile/GetSubCategories1', { categoryId: categoryId }, function(data) {
+                        if (data.length > 0) {
+                            $('#subCategory1Select').prop('disabled', false);
+                            $.each(data, function(i, item) {
+                                $('#subCategory1Select').append($('<option>', {
+                                    value: item.id,
+                                    text: item.name
+                                }));
+                            });
+                        }
+                    });
+                }
+            });
+
+            $('#subCategory1Select').change(function() {
+                var subCategory1Id = $(this).val();
+                $('#subCategory2Select').html('<option value="">اختر التخصص الدقيق</option>').prop('disabled', true);
+
+                if (subCategory1Id) {
+                    $.get('/Profile/GetSubCategories2', { subCategory1Id: subCategory1Id }, function(data) {
+                        if (data.length > 0) {
+                            $('#subCategory2Select').prop('disabled', false);
+                            $.each(data, function(i, item) {
+                                $('#subCategory2Select').append($('<option>', {
+                                    value: item.id,
+                                    text: item.name
+                                }));
+                            });
+                        }
+                    });
+                }
+            });
+
+            // ✅ معالجة اختيار SubCategory2
+            $('#subCategory2Select').change(function() {
+                var selectedOptions = $(this).find('option:selected');
+                var categoryName = $('#categorySelect option:selected').text();
+                var subCategory1Name = $('#subCategory1Select option:selected').text();
+                var currentSubCat1 = $('#subCategory1Select').val();
+
+                selectedOptions.each(function() {
+                    var id = $(this).val();
+                    var name = $(this).text();
+                    if (id) {
+                        var fullPath = categoryName + ' > ' + subCategory1Name + ' > ' + name;
+                        selectedCategories.set(id, {
+                            id: id,
+                            path: fullPath,
+                            subCategory1Id: currentSubCat1
+                        });
+                    }
+                });
+
+                updateSelectedCategoriesDisplay();
+            });
+        });
+
+        // ✅ تحديث عرض الفئات المختارة
+        function updateSelectedCategoriesDisplay() {
+            var categoriesArray = Array.from(selectedCategories.values());
+            var ids = categoriesArray.map(c => c.id);
+
+            $('#storeCategoriesHidden').val(JSON.stringify(ids));
+
+            if (categoriesArray.length > 0) {
+                var html = '<ul class="list-unstyled mb-0">';
+                categoriesArray.forEach(function(cat) {
+                    html += '<li class="mb-1">' +
+                            '<i class="fas fa-check-circle text-success me-2"></i>' +
+                            cat.path +
+                            ' <button type="button" class="btn btn-sm btn-outline-danger ms-2" onclick="removeCategory(\'' + cat.id + '\')">×</button>' +
+                            '</li>';
+                });
+                html += '</ul>';
+
+                $('#selectedCategoriesList').html(html);
+                $('#selectedCategoriesDisplay .alert').show();
+            } else {
+                $('#selectedCategoriesDisplay .alert').hide();
+            }
+        }
+
+        // ✅ إزالة فئة
+        window.removeCategory = function(id) {
+            selectedCategories.delete(id);
+            updateSelectedCategoriesDisplay();
+        };
+    </script>
+}

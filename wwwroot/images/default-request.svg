@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="400" height="300" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="400" height="300" fill="#f8f9fa"/>
+  
+  <!-- Border -->
+  <rect x="10" y="10" width="380" height="280" fill="none" stroke="#dee2e6" stroke-width="2" stroke-dasharray="10,5"/>
+  
+  <!-- Icon -->
+  <g transform="translate(200, 150)">
+    <!-- Shopping bag icon -->
+    <path d="M-30,-40 L30,-40 L35,-10 L-35,-10 Z" fill="#6c757d" opacity="0.3"/>
+    <path d="M-20,-40 L-20,-50 Q-20,-60 -10,-60 L10,-60 Q20,-60 20,-50 L20,-40" fill="none" stroke="#6c757d" stroke-width="3" opacity="0.5"/>
+    <circle cx="0" cy="-25" r="2" fill="#6c757d" opacity="0.6"/>
+  </g>
+  
+  <!-- Text -->
+  <text x="200" y="220" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#6c757d" opacity="0.7">
+    صورة افتراضية للطلب
+  </text>
+  
+  <!-- Decorative elements -->
+  <circle cx="50" cy="50" r="3" fill="#dee2e6" opacity="0.5"/>
+  <circle cx="350" cy="50" r="3" fill="#dee2e6" opacity="0.5"/>
+  <circle cx="50" cy="250" r="3" fill="#dee2e6" opacity="0.5"/>
+  <circle cx="350" cy="250" r="3" fill="#dee2e6" opacity="0.5"/>
+</svg>

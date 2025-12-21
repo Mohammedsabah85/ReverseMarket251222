@@ -1,0 +1,815 @@
+@using ReverseMarket.Models.ViewModels
+@model EditStoreProfileViewModel
+@inject IStringLocalizer<SharedResource> Localizer
+@{
+    ViewData["Title"] = Localizer["EditStore"];
+    var categories = ViewBag.Categories as List<Category> ?? new List<Category>();
+}
+
+<div class="container-custom">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Header -->
+            <div class="page-header text-center mb-4">
+                <h1 class="display-5 fw-bold text-primary">
+                    <i class="fas fa-store me-3"></i>
+                    @Localizer["EditStore"]
+                </h1>
+                <p class="text-muted">@Localizer["ManageStoreInfo"]</p>
+            </div>
+
+            <!-- Alert Messages -->
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle me-2"></i>
+                    @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    @TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <!-- Store Status Card -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            @if (!string.IsNullOrEmpty(Model.CurrentProfileImage))
+                            {
+                                <img src="@Model.CurrentProfileImage" class="rounded-circle store-avatar" alt="@Model.StoreName">
+                            }
+                            else
+                            {
+                                <div class="store-avatar-placeholder">
+                                    <i class="fas fa-store fa-2x"></i>
+                                </div>
+                            }
+                        </div>
+                        <div class="col">
+                            <h4 class="mb-1">@Model.StoreName</h4>
+                            <div class="d-flex flex-wrap gap-2">
+                                @if (Model.IsStoreApproved)
+                                {
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check-circle me-1"></i>
+                                        متجر معتمد
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="fas fa-clock me-1"></i>
+                                        قيد المراجعة
+                                    </span>
+                                }
+                                @if (Model.HasPendingUrlChanges)
+                                {
+                                    <span class="badge bg-info">
+                                        <i class="fas fa-link me-1"></i>
+                                        روابط معلقة
+                                    </span>
+                                }
+                                <span class="text-muted small">
+                                    <i class="fas fa-calendar me-1"></i>
+                                    عضو منذ @Model.CreatedAt.ToString("MMMM yyyy")
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <a href="@Url.Action("Details", "Stores", new { id = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value })"
+                               class="btn btn-outline-primary" target="_blank">
+                                <i class="fas fa-eye me-2"></i>
+                                معاينة المتجر
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Edit Form -->
+            <form asp-action="Edit" method="post" enctype="multipart/form-data" id="editStoreForm">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <!-- Basic Info Section -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white border-bottom">
+                        <h5 class="mb-0 text-primary">
+                            <i class="fas fa-info-circle me-2"></i>
+                            @Localizer["BasicInfo"]
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="StoreName" class="form-label">@Localizer["StoreName"] *</label>
+                                <input asp-for="StoreName" class="form-control" placeholder="مثال: متجر الإلكترونيات" required>
+                                <span asp-validation-for="StoreName" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">رقم الهاتف</label>
+                                <input type="text" class="form-control" value="@Model.PhoneNumber" readonly disabled>
+                                <small class="text-muted">لتغيير رقم الهاتف تواصل مع الدعم</small>
+                            </div>
+
+                            <div class="col-12">
+                                <label asp-for="StoreDescription" class="form-label">@Localizer["StoreDescription"]</label>
+                                <textarea asp-for="StoreDescription" class="form-control" rows="4"
+                                          placeholder="اكتب وصفاً مختصراً عن متجرك والخدمات التي تقدمها..."></textarea>
+                                <span asp-validation-for="StoreDescription" class="text-danger"></span>
+                                <div class="form-text">
+                                    <span id="descriptionCounter">0</span>/1000 حرف
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Store Image Section -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white border-bottom">
+                        <h5 class="mb-0 text-primary">
+                            <i class="fas fa-camera me-2"></i>
+                            @Localizer["StoreImage"]
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-auto">
+                                <div class="current-image-container" id="currentImageContainer">
+                                    @if (!string.IsNullOrEmpty(Model.CurrentProfileImage))
+                                    {
+                                        <img src="@Model.CurrentProfileImage" class="current-image" id="currentImage" alt="صورة المتجر">
+                                        <button type="button" class="btn btn-danger btn-sm delete-current-image" id="deleteCurrentImageBtn">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <div class="no-image-placeholder" id="noImagePlaceholder">
+                                            <i class="fas fa-store fa-3x text-muted"></i>
+                                            <p class="small text-muted mt-2 mb-0">لا توجد صورة</p>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="upload-new-image">
+                                    <label for="newProfileImage" class="form-label">رفع صورة جديدة</label>
+                                    <input asp-for="NewProfileImage" type="file" class="form-control" id="newProfileImage"
+                                           accept=".jpg,.jpeg,.png,.gif,.webp">
+                                    <small class="text-muted">JPG, PNG, GIF, WEBP - الحد الأقصى 5 ميجابايت</small>
+                                </div>
+                                <div id="newImagePreview" class="mt-3" style="display: none;">
+                                    <img src="" class="new-image-preview" alt="معاينة">
+                                    <button type="button" class="btn btn-sm btn-outline-danger mt-2" id="removeNewImage">
+                                        <i class="fas fa-times me-1"></i>
+                                        إزالة
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" asp-for="RemoveCurrentImage" id="removeCurrentImageInput" value="false">
+                    </div>
+                </div>
+
+                <!-- Location Section -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white border-bottom">
+                        <h5 class="mb-0 text-primary">
+                            <i class="fas fa-map-marker-alt me-2"></i>
+                            @Localizer["LocationInfo"]
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label asp-for="City" class="form-label">@Localizer["City"] *</label>
+                                <select asp-for="City" class="form-select" required>
+                                    <option value="">@Localizer["SelectCity"]</option>
+                                    <option value="Baghdad">@Localizer["Baghdad"]</option>
+                                    <option value="Basra">@Localizer["Basra"]</option>
+                                    <option value="Erbil">@Localizer["Erbil"]</option>
+                                    <option value="Najaf">@Localizer["Najaf"]</option>
+                                    <option value="Karbala">@Localizer["Karbala"]</option>
+                                    <option value="Mosul">@Localizer["Mosul"]</option>
+                                    <option value="Sulaymaniyah">@Localizer["Sulaymaniyah"]</option>
+                                    <option value="Babylon">@Localizer["Babylon"]</option>
+                                    <option value="Dohuk">@Localizer["Dohuk"]</option>
+                                    <option value="Kirkuk">@Localizer["Kirkuk"]</option>
+                                    <option value="Anbar">@Localizer["Anbar"]</option>
+                                    <option value="Diyala">@Localizer["Diyala"]</option>
+                                    <option value="Saladin">@Localizer["Saladin"]</option>
+                                    <option value="Wasit">@Localizer["Wasit"]</option>
+                                    <option value="ThiQar">@Localizer["ThiQar"]</option>
+                                    <option value="Muthanna">@Localizer["Muthanna"]</option>
+                                    <option value="Qadisiyyah">@Localizer["Qadisiyyah"]</option>
+                                    <option value="Maysan">@Localizer["Maysan"]</option>
+                                </select>
+                                <span asp-validation-for="City" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label asp-for="District" class="form-label">@Localizer["District"] *</label>
+                                <input asp-for="District" class="form-control" placeholder="مثال: المنصور" required>
+                                <span asp-validation-for="District" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label asp-for="Location" class="form-label">@Localizer["DetailedAddress"]</label>
+                                <input asp-for="Location" class="form-control" placeholder="العنوان التفصيلي (اختياري)">
+                                <span asp-validation-for="Location" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Website Links Section -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white border-bottom">
+                        <h5 class="mb-0 text-primary">
+                            <i class="fas fa-link me-2"></i>
+                            @Localizer["WebsiteLinks"]
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.HasPendingUrlChanges)
+                        {
+                            <div class="alert alert-info mb-3">
+                                <i class="fas fa-info-circle me-2"></i>
+                                لديك روابط في انتظار موافقة الإدارة. الروابط الجديدة ستظهر بعد الموافقة عليها.
+                            </div>
+                        }
+
+                        <div class="row g-3">
+                            <!-- Website URL 1 -->
+                            <div class="col-12">
+                                <div class="url-input-group">
+                                    <label asp-for="WebsiteUrl1" class="form-label">
+                                        @Localizer["WebsiteUrl1"]
+                                        @if (Model.Url1Status == "pending")
+                                        {
+                                            <span class="badge bg-warning text-dark ms-2">قيد المراجعة</span>
+                                        }
+                                        else if (Model.Url1Status == "approved")
+                                        {
+                                            <span class="badge bg-success ms-2">معتمد</span>
+                                        }
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-globe"></i></span>
+                                        <input asp-for="WebsiteUrl1" class="form-control" placeholder="https://example.com">
+                                    </div>
+                                    <span asp-validation-for="WebsiteUrl1" class="text-danger"></span>
+                                    @if (!string.IsNullOrEmpty(Model.PendingWebsiteUrl1))
+                                    {
+                                        <small class="text-info d-block mt-1">
+                                            <i class="fas fa-clock me-1"></i>
+                                            الرابط المعلق: @Model.PendingWebsiteUrl1
+                                        </small>
+                                    }
+                                </div>
+                            </div>
+
+                            <!-- Website URL 2 -->
+                            <div class="col-12">
+                                <div class="url-input-group">
+                                    <label asp-for="WebsiteUrl2" class="form-label">
+                                        @Localizer["WebsiteUrl2"]
+                                        @if (Model.Url2Status == "pending")
+                                        {
+                                            <span class="badge bg-warning text-dark ms-2">قيد المراجعة</span>
+                                        }
+                                        else if (Model.Url2Status == "approved")
+                                        {
+                                            <span class="badge bg-success ms-2">معتمد</span>
+                                        }
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fab fa-facebook"></i></span>
+                                        <input asp-for="WebsiteUrl2" class="form-control" placeholder="https://facebook.com/yourpage">
+                                    </div>
+                                    <span asp-validation-for="WebsiteUrl2" class="text-danger"></span>
+                                    @if (!string.IsNullOrEmpty(Model.PendingWebsiteUrl2))
+                                    {
+                                        <small class="text-info d-block mt-1">
+                                            <i class="fas fa-clock me-1"></i>
+                                            الرابط المعلق: @Model.PendingWebsiteUrl2
+                                        </small>
+                                    }
+                                </div>
+                            </div>
+
+                            <!-- Website URL 3 -->
+                            <div class="col-12">
+                                <div class="url-input-group">
+                                    <label asp-for="WebsiteUrl3" class="form-label">
+                                        @Localizer["WebsiteUrl3"]
+                                        @if (Model.Url3Status == "pending")
+                                        {
+                                            <span class="badge bg-warning text-dark ms-2">قيد المراجعة</span>
+                                        }
+                                        else if (Model.Url3Status == "approved")
+                                        {
+                                            <span class="badge bg-success ms-2">معتمد</span>
+                                        }
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fab fa-instagram"></i></span>
+                                        <input asp-for="WebsiteUrl3" class="form-control" placeholder="https://instagram.com/yourpage">
+                                    </div>
+                                    <span asp-validation-for="WebsiteUrl3" class="text-danger"></span>
+                                    @if (!string.IsNullOrEmpty(Model.PendingWebsiteUrl3))
+                                    {
+                                        <small class="text-info d-block mt-1">
+                                            <i class="fas fa-clock me-1"></i>
+                                            الرابط المعلق: @Model.PendingWebsiteUrl3
+                                        </small>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-light border mt-3 mb-0">
+                            <i class="fas fa-shield-alt text-primary me-2"></i>
+                            <small>تغيير الروابط يحتاج موافقة الإدارة لضمان أمان المستخدمين</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Store Categories Section -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white border-bottom">
+                        <h5 class="mb-0 text-primary">
+                            <i class="fas fa-tags me-2"></i>
+                            @Localizer["StoreSpecializations"]
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Current Categories -->
+                        @if (Model.CurrentStoreCategories?.Any() == true)
+                        {
+                            <div class="mb-4">
+                                <label class="form-label">التخصصات الحالية:</label>
+                                <div class="current-categories" id="currentCategoriesContainer">
+                                    @foreach (var cat in Model.CurrentStoreCategories)
+                                    {
+                                        <div class="category-badge" data-category-id="@cat.Id">
+                                            <span>@cat.FullPath</span>
+                                            <button type="button" class="remove-category-btn" onclick="removeCategory(@cat.Id)">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Add New Categories -->
+                        <div class="add-category-section">
+                            <label class="form-label">إضافة تخصصات جديدة:</label>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <select class="form-select" id="categorySelect">
+                                        <option value="">اختر الفئة الرئيسية</option>
+                                        @foreach (var category in categories)
+                                        {
+                                            <option value="@category.Id">@category.Name</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <select class="form-select" id="subCategory1Select" disabled>
+                                        <option value="">اختر الفئة الفرعية</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <select class="form-select" id="subCategory2Select" disabled>
+                                        <option value="">اختر التخصص</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-outline-primary mt-3" id="addCategoryBtn" disabled>
+                                <i class="fas fa-plus me-2"></i>
+                                إضافة التخصص
+                            </button>
+                        </div>
+
+                        <!-- Selected Categories (hidden input) -->
+                        <input type="hidden" asp-for="StoreCategories" id="storeCategoriesInput">
+
+                        <!-- Selected Categories Display -->
+                        <div class="selected-categories mt-4" id="selectedCategoriesDisplay" style="display: none;">
+                            <label class="form-label">التخصصات المختارة للإضافة:</label>
+                            <div id="selectedCategoriesList" class="current-categories"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Buttons -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <a href="@Url.Action("Index", "Profile")" class="btn btn-outline-secondary btn-lg w-100">
+                                    <i class="fas fa-arrow-right me-2"></i>
+                                    @Localizer["Cancel"]
+                                </a>
+                            </div>
+                            <div class="col-md-6">
+                                <button type="submit" class="btn btn-primary btn-lg w-100" id="submitBtn">
+                                    <i class="fas fa-save me-2"></i>
+                                    @Localizer["SaveChanges"]
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .store-avatar {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+    }
+
+    .store-avatar-placeholder {
+        width: 80px;
+        height: 80px;
+        background: #f8f9fa;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6c757d;
+    }
+
+    .current-image-container {
+        position: relative;
+        width: 150px;
+        height: 150px;
+    }
+
+    .current-image {
+        width: 150px;
+        height: 150px;
+        object-fit: cover;
+        border-radius: 15px;
+        border: 3px solid #e9ecef;
+    }
+
+    .delete-current-image {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .no-image-placeholder {
+        width: 150px;
+        height: 150px;
+        background: #f8f9fa;
+        border-radius: 15px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border: 2px dashed #dee2e6;
+    }
+
+    .new-image-preview {
+        max-width: 150px;
+        max-height: 150px;
+        border-radius: 10px;
+        object-fit: cover;
+    }
+
+    .url-input-group {
+        margin-bottom: 0.5rem;
+    }
+
+    .current-categories {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .category-badge {
+        display: inline-flex;
+        align-items: center;
+        background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+        border: 1px solid #4caf50;
+        border-radius: 25px;
+        padding: 8px 15px;
+        font-size: 0.875rem;
+        color: #2e7d32;
+    }
+
+    .category-badge .remove-category-btn {
+        background: none;
+        border: none;
+        color: #c62828;
+        margin-right: 8px;
+        cursor: pointer;
+        padding: 0;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: all 0.2s;
+    }
+
+    .category-badge .remove-category-btn:hover {
+        background: rgba(198, 40, 40, 0.1);
+    }
+
+    .new-category-badge {
+        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+        border-color: #2196f3;
+        color: #1565c0;
+    }
+
+    @@media (max-width: 768px) {
+        .store-avatar,
+        .store-avatar-placeholder {
+            width: 60px;
+            height: 60px;
+        }
+
+        .current-image-container,
+        .current-image,
+        .no-image-placeholder {
+            width: 120px;
+            height: 120px;
+        }
+    }
+</style>
+
+@section Scripts {
+    <script>
+        let selectedCategories = [];
+        const existingCategoryIds = @Html.Raw(Json.Serialize(Model.CurrentStoreCategories?.Select(c => c.SubCategory2Id).ToList() ?? new List<int?>()));
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeDescriptionCounter();
+            initializeImageUpload();
+            initializeCategorySelection();
+            initializeFormSubmit();
+        });
+
+        // Description counter
+        function initializeDescriptionCounter() {
+            const description = document.getElementById('StoreDescription');
+            const counter = document.getElementById('descriptionCounter');
+
+            if (description && counter) {
+                counter.textContent = description.value?.length || 0;
+                description.addEventListener('input', function() {
+                    counter.textContent = this.value.length;
+                });
+            }
+        }
+
+        // Image upload handling
+        function initializeImageUpload() {
+            const imageInput = document.getElementById('newProfileImage');
+            const preview = document.getElementById('newImagePreview');
+            const previewImg = preview?.querySelector('img');
+            const removeBtn = document.getElementById('removeNewImage');
+            const deleteCurrentBtn = document.getElementById('deleteCurrentImageBtn');
+            const removeCurrentInput = document.getElementById('removeCurrentImageInput');
+
+            if (imageInput) {
+                imageInput.addEventListener('change', function(e) {
+                    if (this.files && this.files[0]) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            if (previewImg) previewImg.src = e.target.result;
+                            if (preview) preview.style.display = 'block';
+                        };
+                        reader.readAsDataURL(this.files[0]);
+                    }
+                });
+            }
+
+            if (removeBtn) {
+                removeBtn.addEventListener('click', function() {
+                    imageInput.value = '';
+                    if (preview) preview.style.display = 'none';
+                });
+            }
+
+            if (deleteCurrentBtn) {
+                deleteCurrentBtn.addEventListener('click', function() {
+                    if (confirm('هل أنت متأكد من حذف الصورة الحالية؟')) {
+                        removeCurrentInput.value = 'true';
+                        const currentImage = document.getElementById('currentImage');
+                        if (currentImage) currentImage.style.opacity = '0.3';
+                        this.style.display = 'none';
+                        showAlert('سيتم حذف الصورة عند الحفظ', 'info');
+                    }
+                });
+            }
+        }
+
+        // Category selection
+        function initializeCategorySelection() {
+            const categorySelect = document.getElementById('categorySelect');
+            const subCategory1Select = document.getElementById('subCategory1Select');
+            const subCategory2Select = document.getElementById('subCategory2Select');
+            const addBtn = document.getElementById('addCategoryBtn');
+
+            categorySelect.addEventListener('change', function() {
+                const categoryId = this.value;
+                subCategory1Select.innerHTML = '<option value="">اختر الفئة الفرعية</option>';
+                subCategory2Select.innerHTML = '<option value="">اختر التخصص</option>';
+                subCategory1Select.disabled = true;
+                subCategory2Select.disabled = true;
+                addBtn.disabled = true;
+
+                if (categoryId) {
+                    fetch(`/StoreManagement/GetSubCategories1?categoryId=${categoryId}`)
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.length > 0) {
+                                subCategory1Select.disabled = false;
+                                data.forEach(item => {
+                                    subCategory1Select.innerHTML += `<option value="${item.id}">${item.name}</option>`;
+                                });
+                            }
+                        });
+                }
+            });
+
+            subCategory1Select.addEventListener('change', function() {
+                const subCategory1Id = this.value;
+                subCategory2Select.innerHTML = '<option value="">اختر التخصص</option>';
+                subCategory2Select.disabled = true;
+                addBtn.disabled = true;
+
+                if (subCategory1Id) {
+                    fetch(`/StoreManagement/GetSubCategories2?subCategory1Id=${subCategory1Id}`)
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.length > 0) {
+                                subCategory2Select.disabled = false;
+                                data.forEach(item => {
+                                    subCategory2Select.innerHTML += `<option value="${item.id}">${item.name}</option>`;
+                                });
+                            }
+                        });
+                }
+            });
+
+            subCategory2Select.addEventListener('change', function() {
+                addBtn.disabled = !this.value;
+            });
+
+            addBtn.addEventListener('click', function() {
+                const subCat2Id = parseInt(subCategory2Select.value);
+                const subCat2Name = subCategory2Select.options[subCategory2Select.selectedIndex].text;
+                const subCat1Name = subCategory1Select.options[subCategory1Select.selectedIndex].text;
+                const catName = categorySelect.options[categorySelect.selectedIndex].text;
+
+                // Check if already exists
+                if (existingCategoryIds.includes(subCat2Id) || selectedCategories.includes(subCat2Id)) {
+                    showAlert('هذا التخصص موجود بالفعل', 'warning');
+                    return;
+                }
+
+                selectedCategories.push(subCat2Id);
+                updateSelectedCategoriesDisplay(subCat2Id, `${catName} > ${subCat1Name} > ${subCat2Name}`);
+                updateHiddenInput();
+
+                // Reset selects
+                categorySelect.value = '';
+                subCategory1Select.innerHTML = '<option value="">اختر الفئة الفرعية</option>';
+                subCategory2Select.innerHTML = '<option value="">اختر التخصص</option>';
+                subCategory1Select.disabled = true;
+                subCategory2Select.disabled = true;
+                addBtn.disabled = true;
+            });
+        }
+
+        function updateSelectedCategoriesDisplay(id, name) {
+            const container = document.getElementById('selectedCategoriesDisplay');
+            const list = document.getElementById('selectedCategoriesList');
+            container.style.display = 'block';
+
+            const badge = document.createElement('div');
+            badge.className = 'category-badge new-category-badge';
+            badge.dataset.categoryId = id;
+            badge.innerHTML = `
+                <span>${name}</span>
+                <button type="button" class="remove-category-btn" onclick="removeNewCategory(${id})">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            list.appendChild(badge);
+        }
+
+        function removeNewCategory(id) {
+            selectedCategories = selectedCategories.filter(c => c !== id);
+            const badge = document.querySelector(`#selectedCategoriesList .category-badge[data-category-id="${id}"]`);
+            if (badge) badge.remove();
+
+            if (selectedCategories.length === 0) {
+                document.getElementById('selectedCategoriesDisplay').style.display = 'none';
+            }
+            updateHiddenInput();
+        }
+
+        function removeCategory(id) {
+            if (confirm('هل أنت متأكد من حذف هذا التخصص؟')) {
+                fetch(`/StoreManagement/RemoveCategory?categoryId=${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    }
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        const badge = document.querySelector(`#currentCategoriesContainer .category-badge[data-category-id="${id}"]`);
+                        if (badge) badge.remove();
+
+                        // Remove from existingCategoryIds
+                        const index = existingCategoryIds.indexOf(id);
+                        if (index > -1) existingCategoryIds.splice(index, 1);
+
+                        showAlert(data.message, 'success');
+                    } else {
+                        showAlert(data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('حدث خطأ أثناء حذف التخصص', 'error');
+                });
+            }
+        }
+
+        function updateHiddenInput() {
+            const allCategories = [...existingCategoryIds.filter(id => id != null), ...selectedCategories];
+            document.getElementById('storeCategoriesInput').value = JSON.stringify(allCategories);
+        }
+
+        // Form submit
+        function initializeFormSubmit() {
+            const form = document.getElementById('editStoreForm');
+            const submitBtn = document.getElementById('submitBtn');
+
+            form.addEventListener('submit', function(e) {
+                // Update hidden input with all categories
+                updateHiddenInput();
+
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>جاري الحفظ...';
+
+                setTimeout(() => {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-save me-2"></i>حفظ التغييرات';
+                }, 15000);
+            });
+        }
+
+        // Alerts
+        function showAlert(message, type = 'info') {
+            document.querySelectorAll('.alert.auto-dismiss').forEach(a => a.remove());
+
+            const icons = {
+                'success': 'fa-check-circle',
+                'error': 'fa-exclamation-circle',
+                'warning': 'fa-exclamation-triangle',
+                'info': 'fa-info-circle'
+            };
+
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show auto-dismiss`;
+            alertDiv.style.cssText = 'position:fixed;top:20px;right:20px;z-index:9999;max-width:350px;box-shadow:0 4px 15px rgba(0,0,0,0.2);';
+            alertDiv.innerHTML = `<i class="fas ${icons[type]} me-2"></i>${message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+
+            document.body.appendChild(alertDiv);
+            setTimeout(() => alertDiv.remove(), 4000);
+        }
+    </script>
+}

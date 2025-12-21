@@ -252,20 +252,20 @@ var app = builder.Build();
 // Localization (íÌÈ Ãä íßæä æÇÍÏ ÝÞØ)
 var localizationOptions = app.Services.GetRequiredService<IOptions<RequestLocalizationOptions>>().Value;
 app.UseRequestLocalization(localizationOptions);
-
+app.UseDeveloperExceptionPage();
 // Error Handling
-if (app.Environment.IsDevelopment())
-{
-    app.UseMigrationsEndPoint();
-}
-else
-{
-    app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
-}
+//if (app.Environment.IsDevelopment())
+//{
+//    app.UseMigrationsEndPoint();
+//}
+//else
+//{
+//    app.UseExceptionHandler("/Home/Error");
+//    app.UseHsts();
+//}
 
 // Status Code Pages
-app.UseStatusCodePagesWithReExecute("/Error/{0}");
+//app.UseStatusCodePagesWithReExecute("/Error/{0}");
 
 // Static Files
 app.UseHttpsRedirection();
@@ -279,7 +279,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 // Admin Area Protection
-app.UseAdminAreaAuthorization();
+//app.UseAdminAreaAuthorization();
 
 // Session
 app.UseSession();

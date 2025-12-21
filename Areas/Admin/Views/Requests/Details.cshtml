@@ -1,4 +1,4 @@
-﻿@model Request
+@model Request
 @{
     ViewData["Title"] = "تفاصيل الطلب";
 }
@@ -32,11 +32,24 @@
                         case RequestStatus.Postponed:
                             <span class="badge bg-secondary fs-6">مؤجل</span>
                             break;
+                        case RequestStatus.ModificationPending:
+                            <span class="badge bg-info fs-6">تعديل قيد المراجعة</span>
+                            break;
+                    }
+                    @if (Model.IsModified)
+                    {
+                        <small class="text-muted ms-2">
+                            <i class="fas fa-edit"></i>
+                            تم التعديل @Model.ModificationCount مرة
+                        </small>
                     }
                 </h5>
             </div>
             <div class="col-md-6 text-end">
-                <div class="d-flex gap-2 justify-content-end">
+                <div class="d-flex gap-2 justify-content-end flex-wrap">
+                    @* ═══════════════════════════════════════════════════════════════════ *@
+                    @* حالة: في الانتظار (Pending) *@
+                    @* ═══════════════════════════════════════════════════════════════════ *@
                     @if (Model.Status == RequestStatus.Pending)
                     {
                         <form method="post" asp-action="UpdateStatus" style="display: inline;">
@@ -66,9 +79,37 @@
                             رفض
                         </button>
                     }
-                    else if (Model.Status == RequestStatus.Postponed)
+
+                    @* ═══════════════════════════════════════════════════════════════════ *@
+                    @* حالة: تعديل قيد المراجعة (ModificationPending) *@
+                    @* ═══════════════════════════════════════════════════════════════════ *@
+                    @if (Model.Status == RequestStatus.ModificationPending)
                     {
-                        <!-- إضافة خيار تحويل من مؤجل إلى معتمد -->
+                        <div class="alert alert-info p-2 mb-0 me-2 d-flex align-items-center">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <small>طلب معدّل يحتاج مراجعة</small>
+                        </div>
+
+                        <form method="post" asp-action="ApproveModification" style="display: inline;">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.Id" />
+                            <button type="submit" class="btn btn-success" onclick="return confirm('هل أنت متأكد من اعتماد التعديلات على هذا الطلب؟')">
+                                <i class="fas fa-check-double me-1"></i>
+                                اعتماد التعديل
+                            </button>
+                        </form>
+
+                        <button type="button" class="btn btn-danger" onclick="showRejectModificationModal(@Model.Id)">
+                            <i class="fas fa-times me-1"></i>
+                            رفض التعديل
+                        </button>
+                    }
+
+                    @* ═══════════════════════════════════════════════════════════════════ *@
+                    @* حالة: مؤجل (Postponed) *@
+                    @* ═══════════════════════════════════════════════════════════════════ *@
+                    @if (Model.Status == RequestStatus.Postponed)
+                    {
                         <form method="post" asp-action="UpdateStatus" style="display: inline;">
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="id" value="@Model.Id" />
@@ -85,9 +126,12 @@
                             رفض
                         </button>
                     }
-                    else if (Model.Status == RequestStatus.Approved)
+
+                    @* ═══════════════════════════════════════════════════════════════════ *@
+                    @* حالة: معتمد (Approved) *@
+                    @* ═══════════════════════════════════════════════════════════════════ *@
+                    @if (Model.Status == RequestStatus.Approved)
                     {
-                        <!-- إضافة خيارات للطلبات المعتمدة -->
                         <form method="post" asp-action="ToggleRequestStatus" style="display: inline;">
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="id" value="@Model.Id" />
@@ -98,7 +142,9 @@
                         </form>
                     }
 
-                    <!-- أزرار التعديل والحذف متاحة لجميع الحالات -->
+                    @* ═══════════════════════════════════════════════════════════════════ *@
+                    @* أزرار التعديل والحذف متاحة لجميع الحالات *@
+                    @* ═══════════════════════════════════════════════════════════════════ *@
                     <a href="/Admin/Requests/Edit/@Model.Id" class="btn btn-primary">
                         <i class="fas fa-edit me-1"></i>
                         تعديل
@@ -116,12 +162,37 @@
             </div>
         </div>
 
+        @* ═══════════════════════════════════════════════════════════════════ *@
+        @* عرض معلومات التعديل إذا كان الطلب معدّل *@
+        @* ═══════════════════════════════════════════════════════════════════ *@
+        @if (Model.IsModified && Model.LastModifiedAt.HasValue)
+        {
+            <hr>
+            <div class="alert alert-warning">
+                <i class="fas fa-history me-2"></i>
+                <strong>معلومات التعديل:</strong>
+                <ul class="mb-0 mt-2">
+                    <li>عدد مرات التعديل: <strong>@Model.ModificationCount</strong></li>
+                    <li>آخر تعديل: <strong>@Model.LastModifiedAt.Value.ToString("dd/MM/yyyy - hh:mm tt")</strong></li>
+                </ul>
+            </div>
+        }
+
         @if (!string.IsNullOrEmpty(Model.AdminNotes))
         {
             <hr>
             <div class="alert alert-info">
                 <strong>ملاحظات الإدارة:</strong><br>
                 @Model.AdminNotes
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(Model.RejectionReason))
+        {
+            <hr>
+            <div class="alert alert-danger">
+                <strong>سبب الرفض:</strong><br>
+                @Model.RejectionReason
             </div>
         }
     </div>
@@ -141,7 +212,7 @@
 
                 <div class="mb-3">
                     <div class="d-flex gap-2 mb-2">
-                        <span class="badge bg-primary">@Model.Category.Name</span>
+                        <span class="badge bg-primary">@Model.Category?.Name</span>
                         @if (Model.SubCategory1 != null)
                         {
                             <span class="badge bg-secondary">@Model.SubCategory1.Name</span>
@@ -168,13 +239,13 @@
         </div>
 
         <!-- Images -->
-        @if (Model.Images.Any())
+        @if (Model.Images != null && Model.Images.Any())
         {
             <div class="card-admin mb-4">
                 <div class="card-body">
                     <h5 class="text-primary mb-3">
                         <i class="fas fa-images me-2"></i>
-                        صور الطلب
+                        صور الطلب (@Model.Images.Count)
                     </h5>
 
                     <div class="row g-3">
@@ -182,7 +253,7 @@
                         {
                             <div class="col-md-4">
                                 <img src="@image.ImagePath" class="img-fluid rounded"
-                                     style="height: 200px; object-fit: cover; width: 100%;"
+                                     style="height: 200px; object-fit: cover; width: 100%; cursor: pointer;"
                                      alt="صورة الطلب" data-bs-toggle="modal" data-bs-target="#imageModal"
                                      onclick="showImage('@image.ImagePath')">
                             </div>
@@ -203,7 +274,7 @@
                 </h5>
 
                 <div class="text-center mb-3">
-                    @if (!string.IsNullOrEmpty(Model.User.ProfileImage))
+                    @if (!string.IsNullOrEmpty(Model.User?.ProfileImage))
                     {
                         <img src="@Model.User.ProfileImage" class="rounded-circle mb-2"
                              style="width: 80px; height: 80px; object-fit: cover;" alt="صورة العميل">
@@ -215,21 +286,21 @@
                             <i class="fas fa-user fa-2x"></i>
                         </div>
                     }
-                    <h6>@Model.User.FirstName @Model.User.LastName</h6>
-                    <p class="text-muted small">عضو منذ @Model.User.CreatedAt.ToString("MM/yyyy")</p>
+                    <h6>@Model.User?.FirstName @Model.User?.LastName</h6>
+                    <p class="text-muted small">عضو منذ @Model.User?.CreatedAt.ToString("MM/yyyy")</p>
                 </div>
 
                 <div class="d-grid gap-2">
-                    <a href="tel:@Model.User.PhoneNumber" class="btn btn-outline-primary btn-sm">
+                    <a href="tel:@Model.User?.PhoneNumber" class="btn btn-outline-primary btn-sm">
                         <i class="fas fa-phone me-1"></i>
-                        @Model.User.PhoneNumber
+                        @Model.User?.PhoneNumber
                     </a>
-                    <a href="https://wa.me/@Model.User.PhoneNumber.Replace("+", "")" target="_blank"
+                    <a href="https://wa.me/@Model.User?.PhoneNumber?.Replace("+", "")" target="_blank"
                        class="btn btn-success btn-sm">
                         <i class="fab fa-whatsapp me-1"></i>
                         واتساب
                     </a>
-                    @if (!string.IsNullOrEmpty(Model.User.Email))
+                    @if (!string.IsNullOrEmpty(Model.User?.Email))
                     {
                         <a href="mailto:@Model.User.Email" class="btn btn-outline-info btn-sm">
                             <i class="fas fa-envelope me-1"></i>
@@ -257,6 +328,17 @@
                         </div>
                     </div>
 
+                    @if (Model.IsModified && Model.LastModifiedAt.HasValue)
+                    {
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-info"></div>
+                            <div class="timeline-content">
+                                <h6>تم تعديل الطلب</h6>
+                                <small class="text-muted">@Model.LastModifiedAt.Value.ToString("dd/MM/yyyy - hh:mm tt")</small>
+                            </div>
+                        </div>
+                    }
+
                     @if (Model.Status == RequestStatus.Approved && Model.ApprovedAt.HasValue)
                     {
                         <div class="timeline-item">
@@ -264,6 +346,17 @@
                             <div class="timeline-content">
                                 <h6>تم اعتماد الطلب</h6>
                                 <small class="text-muted">@Model.ApprovedAt.Value.ToString("dd/MM/yyyy - hh:mm tt")</small>
+                            </div>
+                        </div>
+                    }
+
+                    @if (Model.Status == RequestStatus.Rejected)
+                    {
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-danger"></div>
+                            <div class="timeline-content">
+                                <h6>تم رفض الطلب</h6>
+                                <small class="text-muted">@(!string.IsNullOrEmpty(Model.RejectionReason) ? Model.RejectionReason : "بدون سبب محدد")</small>
                             </div>
                         </div>
                     }
@@ -353,6 +446,65 @@
     </div>
 </div>
 
+<!-- Reject Modification Modal -->
+<div class="modal fade" id="rejectModificationModal" tabindex="-1" aria-labelledby="rejectModificationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="rejectModificationModalLabel">
+                    <i class="fas fa-times me-2"></i>
+                    رفض التعديل
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+            </div>
+            <form id="rejectModificationForm" method="post" asp-action="RejectModification">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="rejectModificationRequestId" name="id" value="" />
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>ملاحظة:</strong> سيتم إعادة الطلب لحالة "قيد المراجعة" مع إرسال إشعار للمستخدم بسبب رفض التعديل.
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="modificationRejectionReason" class="form-label fw-bold">
+                            <i class="fas fa-comment me-2"></i>
+                            سبب رفض التعديل <span class="text-danger">*</span>
+                        </label>
+                        <textarea class="form-control" id="modificationRejectionReason" name="rejectionReason" rows="4"
+                                  placeholder="يرجى كتابة سبب واضح لرفض التعديلات..." required></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">أسباب شائعة:</label>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setModificationReason('التعديلات غير مناسبة')">
+                                تعديلات غير مناسبة
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setModificationReason('المعلومات لا تزال غير واضحة')">
+                                معلومات غير واضحة
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setModificationReason('الصور غير مناسبة')">
+                                صور غير مناسبة
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>
+                        إلغاء
+                    </button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-check me-2"></i>
+                        تأكيد رفض التعديل
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         function showImage(imageSrc) {
@@ -366,33 +518,62 @@
             modal.show();
         }
 
+        function showRejectModificationModal(requestId) {
+            document.getElementById('rejectModificationRequestId').value = requestId;
+            document.getElementById('modificationRejectionReason').value = '';
+            var modal = new bootstrap.Modal(document.getElementById('rejectModificationModal'));
+            modal.show();
+        }
+
         function setReason(reason) {
             document.getElementById('rejectionReason').value = reason;
         }
 
+        function setModificationReason(reason) {
+            document.getElementById('modificationRejectionReason').value = reason;
+        }
+
         // تحسين تجربة المستخدم
         document.addEventListener('DOMContentLoaded', function() {
+            // نموذج الرفض
             const rejectForm = document.getElementById('rejectForm');
-            const submitBtn = rejectForm.querySelector('button[type="submit"]');
+            if (rejectForm) {
+                rejectForm.addEventListener('submit', function(e) {
+                    const reason = document.getElementById('rejectionReason').value.trim();
+                    if (reason.length < 10) {
+                        e.preventDefault();
+                        alert('يرجى كتابة سبب مفصل للرفض (على الأقل 10 أحرف)');
+                        return false;
+                    }
+                    if (!confirm('هل أنت متأكد من رفض هذا الطلب؟')) {
+                        e.preventDefault();
+                        return false;
+                    }
+                    const submitBtn = rejectForm.querySelector('button[type="submit"]');
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>جاري الرفض...';
+                });
+            }
 
-            rejectForm.addEventListener('submit', function(e) {
-                const reason = document.getElementById('rejectionReason').value.trim();
-
-                if (reason.length < 10) {
-                    e.preventDefault();
-                    alert('يرجى كتابة سبب مفصل للرفض (على الأقل 10 أحرف)');
-                    return false;
-                }
-
-                if (!confirm('هل أنت متأكد من رفض هذا الطلب؟ سيتم إرسال إشعار للمستخدم بسبب الرفض.')) {
-                    e.preventDefault();
-                    return false;
-                }
-
-                // تعطيل الزر لمنع الإرسال المتكرر
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>جاري الرفض...';
-            });
+            // نموذج رفض التعديل
+            const rejectModificationForm = document.getElementById('rejectModificationForm');
+            if (rejectModificationForm) {
+                rejectModificationForm.addEventListener('submit', function(e) {
+                    const reason = document.getElementById('modificationRejectionReason').value.trim();
+                    if (reason.length < 10) {
+                        e.preventDefault();
+                        alert('يرجى كتابة سبب مفصل لرفض التعديل (على الأقل 10 أحرف)');
+                        return false;
+                    }
+                    if (!confirm('هل أنت متأكد من رفض تعديلات هذا الطلب؟')) {
+                        e.preventDefault();
+                        return false;
+                    }
+                    const submitBtn = rejectModificationForm.querySelector('button[type="submit"]');
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>جاري الرفض...';
+                });
+            }
         });
     </script>
 }

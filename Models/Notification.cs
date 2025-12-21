@@ -77,6 +77,7 @@ namespace ReverseMarket.Models
         StoreDeleted,
         StoreModificationRejected,
         StoreModificationApproved,
-        StoreModified
+        StoreModified,
+        StoreUrlChangeRequest
     }
 }

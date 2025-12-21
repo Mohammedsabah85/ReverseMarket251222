@@ -1,4 +1,4 @@
-﻿@model AdminRequestsViewModel
+@model AdminRequestsViewModel
 @{
     ViewData["Title"] = "إدارة الطلبات";
 }
@@ -11,38 +11,11 @@
                 <label for="status" class="form-label">الحالة</label>
                 <select name="status" id="status" class="form-control">
                     <option value="">جميع الحالات</option>
-                    @if (Model.StatusFilter == RequestStatus.Pending)
-                    {
-                        <option value="1" selected>في الانتظار</option>
-                    }
-                    else
-                    {
-                        <option value="1">في الانتظار</option>
-                    }
-                    @if (Model.StatusFilter == RequestStatus.Approved)
-                    {
-                        <option value="2" selected>معتمد</option>
-                    }
-                    else
-                    {
-                        <option value="2">معتمد</option>
-                    }
-                    @if (Model.StatusFilter == RequestStatus.Rejected)
-                    {
-                        <option value="3" selected>مرفوض</option>
-                    }
-                    else
-                    {
-                        <option value="3">مرفوض</option>
-                    }
-                    @if (Model.StatusFilter == RequestStatus.Postponed)
-                    {
-                        <option value="4" selected>مؤجل</option>
-                    }
-                    else
-                    {
-                        <option value="4">مؤجل</option>
-                    }
+                    <option value="1" selected="@(Model.StatusFilter == RequestStatus.Pending ? "selected" : null)">في الانتظار</option>
+                    <option value="2" selected="@(Model.StatusFilter == RequestStatus.Approved ? "selected" : null)">معتمد</option>
+                    <option value="3" selected="@(Model.StatusFilter == RequestStatus.Rejected ? "selected" : null)">مرفوض</option>
+                    <option value="4" selected="@(Model.StatusFilter == RequestStatus.Postponed ? "selected" : null)">مؤجل</option>
+                    <option value="5" selected="@(Model.StatusFilter == RequestStatus.ModificationPending ? "selected" : null)">تعديل قيد المراجعة</option>
                 </select>
             </div>
             <div class="col-md-3 d-flex align-items-end">
@@ -50,14 +23,55 @@
                     <i class="fas fa-filter me-1"></i>
                     تصفية
                 </button>
+                <a href="/Admin/Requests" class="btn btn-outline-secondary ms-2">
+                    <i class="fas fa-redo me-1"></i>
+                    إعادة تعيين
+                </a>
             </div>
         </form>
     </div>
 </div>
 
+<!-- Quick Stats -->
+@{
+    var pendingCount = Model.Requests.Count(r => r.Status == RequestStatus.Pending);
+    var modificationPendingCount = Model.Requests.Count(r => r.Status == RequestStatus.ModificationPending);
+    var approvedCount = Model.Requests.Count(r => r.Status == RequestStatus.Approved);
+}
+
+@if (pendingCount > 0 || modificationPendingCount > 0)
+{
+    <div class="row mb-4">
+        @if (pendingCount > 0)
+        {
+            <div class="col-md-3">
+                <div class="alert alert-warning mb-0 d-flex align-items-center justify-content-between">
+                    <div>
+                        <i class="fas fa-clock me-2"></i>
+                        <strong>@pendingCount</strong> طلب في الانتظار
+                    </div>
+                    <a href="?status=1" class="btn btn-warning btn-sm">عرض</a>
+                </div>
+            </div>
+        }
+        @if (modificationPendingCount > 0)
+        {
+            <div class="col-md-3">
+                <div class="alert alert-info mb-0 d-flex align-items-center justify-content-between">
+                    <div>
+                        <i class="fas fa-edit me-2"></i>
+                        <strong>@modificationPendingCount</strong> تعديل قيد المراجعة
+                    </div>
+                    <a href="?status=5" class="btn btn-info btn-sm">عرض</a>
+                </div>
+            </div>
+        }
+    </div>
+}
+
 <!-- Requests Table -->
 <div class="card-admin">
-    <div class="card-header">
+    <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="mb-0">
             <i class="fas fa-list-alt me-2"></i>
             الطلبات (@Model.Requests.Count)
@@ -70,6 +84,7 @@
                 <table class="table table-admin">
                     <thead>
                         <tr>
+                            <th>#</th>
                             <th>العنوان</th>
                             <th>العميل</th>
                             <th>الفئة</th>
@@ -82,7 +97,17 @@
                     <tbody>
                         @foreach (var request in Model.Requests)
                         {
-                            <tr>
+                            <tr class="@(request.Status == RequestStatus.ModificationPending ? "table-info" : "")">
+                                <td>
+                                    <strong>#@request.Id</strong>
+                                    @if (request.IsModified)
+                                    {
+                                        <br>
+                                        <small class="text-info">
+                                            <i class="fas fa-edit"></i> معدّل
+                                        </small>
+                                    }
+                                </td>
                                 <td>
                                     <div>
                                         <strong>@request.Title</strong>
@@ -94,11 +119,11 @@
                                     </div>
                                 </td>
                                 <td>
-                                    @request.User.FirstName @request.User.LastName
-                                    <br><small class="text-muted">@request.User.PhoneNumber</small>
+                                    @request.User?.FirstName @request.User?.LastName
+                                    <br><small class="text-muted">@request.User?.PhoneNumber</small>
                                 </td>
                                 <td>
-                                    <span class="badge bg-primary">@request.Category.Name</span>
+                                    <span class="badge bg-primary">@request.Category?.Name</span>
                                     @if (request.SubCategory1 != null)
                                     {
                                         <br>
@@ -121,25 +146,47 @@
                                         case RequestStatus.Postponed:
                                             <span class="badge bg-secondary">مؤجل</span>
                                             break;
+                                        case RequestStatus.ModificationPending:
+                                            <span class="badge bg-info">تعديل قيد المراجعة</span>
+                                            break;
                                     }
                                 </td>
                                 <td>
                                     @request.CreatedAt.ToString("dd/MM/yyyy")
                                     <br><small class="text-muted">@request.CreatedAt.ToString("hh:mm tt")</small>
+                                    @if (request.IsModified && request.LastModifiedAt.HasValue)
+                                    {
+                                        <br>
+                                        <small class="text-info">
+                                            <i class="fas fa-edit"></i>
+                                            @request.LastModifiedAt.Value.ToString("dd/MM")
+                                        </small>
+                                    }
                                 </td>
                                 <td>
-                                    <div class="d-flex gap-1">
-                                        <a href="/Admin/Requests/Details/@request.Id" class="btn btn-outline-primary btn-sm">
+                                    <div class="d-flex gap-1 flex-wrap">
+                                        <a href="/Admin/Requests/Details/@request.Id" class="btn btn-outline-primary btn-sm" title="عرض التفاصيل">
                                             <i class="fas fa-eye"></i>
                                         </a>
                                         @if (request.Status == RequestStatus.Pending)
                                         {
-                                            <button type="button" class="btn btn-outline-success btn-sm"
+                                            <button type="button" class="btn btn-outline-success btn-sm" title="موافقة"
                                                     onclick="updateStatus(@request.Id, 2, 'موافقة')">
                                                 <i class="fas fa-check"></i>
                                             </button>
-                                            <button type="button" class="btn btn-outline-danger btn-sm"
+                                            <button type="button" class="btn btn-outline-danger btn-sm" title="رفض"
                                                     onclick="updateStatus(@request.Id, 3, 'رفض')">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        }
+                                        @if (request.Status == RequestStatus.ModificationPending)
+                                        {
+                                            <button type="button" class="btn btn-success btn-sm" title="اعتماد التعديل"
+                                                    onclick="approveModification(@request.Id)">
+                                                <i class="fas fa-check-double"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-outline-danger btn-sm" title="رفض التعديل"
+                                                    onclick="updateStatus(@request.Id, 3, 'رفض التعديل')">
                                                 <i class="fas fa-times"></i>
                                             </button>
                                         }
@@ -167,18 +214,9 @@
 
                         @for (int i = Math.Max(1, Model.CurrentPage - 2); i <= Math.Min(Model.TotalPages, Model.CurrentPage + 2); i++)
                         {
-                            if (i == Model.CurrentPage)
-                            {
-                                <li class="page-item active">
-                                    <a class="page-link" href="?page=@i&status=@((int?)Model.StatusFilter)">@i</a>
-                                </li>
-                            }
-                            else
-                            {
-                                <li class="page-item">
-                                    <a class="page-link" href="?page=@i&status=@((int?)Model.StatusFilter)">@i</a>
-                                </li>
-                            }
+                            <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                                <a class="page-link" href="?page=@i&status=@((int?)Model.StatusFilter)">@i</a>
+                            </li>
                         }
 
                         @if (Model.CurrentPage < Model.TotalPages)
@@ -206,8 +244,17 @@
 
 @section Scripts {
     <script>
-        // ✅ الحصول على Anti-Forgery Token من الصفحة
-        const antiForgeryToken = '@Html.AntiForgeryToken()'.match(/value="([^"]+)"/)[1];
+        // الحصول على Anti-Forgery Token من الصفحة
+        function getAntiForgeryToken() {
+            const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (tokenInput) return tokenInput.value;
+            
+            // إذا لم يكن موجوداً، ابحث في meta tag
+            const tokenMeta = document.querySelector('meta[name="csrf-token"]');
+            if (tokenMeta) return tokenMeta.content;
+            
+            return '';
+        }
 
         function updateStatus(requestId, status, action) {
             if (confirm(`هل أنت متأكد من ${action} هذا الطلب؟`)) {
@@ -215,11 +262,10 @@
                 form.method = 'POST';
                 form.action = `/Admin/Requests/UpdateStatus`;
 
-                // ✅ إضافة Anti-Forgery Token
                 const tokenInput = document.createElement('input');
                 tokenInput.type = 'hidden';
                 tokenInput.name = '__RequestVerificationToken';
-                tokenInput.value = antiForgeryToken;
+                tokenInput.value = getAntiForgeryToken();
                 form.appendChild(tokenInput);
 
                 const idInput = document.createElement('input');
@@ -238,5 +284,33 @@
                 form.submit();
             }
         }
+
+        function approveModification(requestId) {
+            if (confirm('هل أنت متأكد من اعتماد التعديلات على هذا الطلب؟')) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/Admin/Requests/ApproveModification`;
+
+                const tokenInput = document.createElement('input');
+                tokenInput.type = 'hidden';
+                tokenInput.name = '__RequestVerificationToken';
+                tokenInput.value = getAntiForgeryToken();
+                form.appendChild(tokenInput);
+
+                const idInput = document.createElement('input');
+                idInput.type = 'hidden';
+                idInput.name = 'id';
+                idInput.value = requestId;
+                form.appendChild(idInput);
+
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
     </script>
+    
+    <!-- Hidden form for CSRF token -->
+    <form id="csrfForm" style="display:none;">
+        @Html.AntiForgeryToken()
+    </form>
 }

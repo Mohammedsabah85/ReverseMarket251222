@@ -1,0 +1,897 @@
+@model EditRequestViewModel
+@inject IStringLocalizer<SharedResource> Localizer
+@{
+    ViewData["Title"] = Localizer["EditRequest"];
+    var categories = ViewBag.Categories as List<Category> ?? new List<Category>();
+    var subCategories1 = ViewBag.SubCategories1 as List<SubCategory1> ?? new List<SubCategory1>();
+    var subCategories2 = ViewBag.SubCategories2 as List<SubCategory2> ?? new List<SubCategory2>();
+}
+
+<div class="container-custom">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card-custom">
+                <!-- Header -->
+                <div class="text-center mb-4">
+                    <h1 class="display-6 text-primary">
+                        <i class="fas fa-edit me-3"></i>
+                        @Localizer["EditRequest"]
+                    </h1>
+                    <p class="text-muted">@Localizer["EditRequestDescription"]</p>
+                </div>
+
+                <!-- Alert Messages -->
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="fas fa-check-circle me-2"></i>
+                        @TempData["SuccessMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        @TempData["ErrorMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+                @if (TempData["WarningMessage"] != null)
+                {
+                    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        @TempData["WarningMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+                @if (TempData["InfoMessage"] != null)
+                {
+                    <div class="alert alert-info alert-dismissible fade show" role="alert">
+                        <i class="fas fa-info-circle me-2"></i>
+                        @TempData["InfoMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+
+                <form asp-action="Edit" method="post" enctype="multipart/form-data" id="editRequestForm">
+                    <input type="hidden" asp-for="Id" />
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <!-- Basic Information Section -->
+                    <div class="form-section">
+                        <h5 class="section-title">
+                            <i class="fas fa-info-circle me-2"></i>
+                            @Localizer["BasicInfo"]
+                        </h5>
+
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label asp-for="Title" class="form-label">@Localizer["Title"] *</label>
+                                <input asp-for="Title" class="form-control" placeholder="@Localizer["RequestTitleExample"]" required>
+                                <span asp-validation-for="Title" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-12">
+                                <label asp-for="Description" class="form-label">@Localizer["Description"] *</label>
+                                <textarea asp-for="Description" class="form-control" rows="5"
+                                          placeholder="@Localizer["RequestDescriptionPlaceholder"]" required></textarea>
+                                <span asp-validation-for="Description" class="text-danger"></span>
+                                <div class="form-text">@Localizer["BetterDetailsNote"]</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Category Selection Section -->
+                    <div class="form-section">
+                        <h5 class="section-title">
+                            <i class="fas fa-tags me-2"></i>
+                            @Localizer["Category"]
+                        </h5>
+
+                        <div class="category-selection-container">
+                            <!-- Main Category -->
+                            <div class="category-step mb-4">
+                                <label asp-for="CategoryId" class="form-label category-label">
+                                    <i class="fas fa-folder me-2"></i>
+                                    @Localizer["MainCategory"] *
+                                </label>
+                                <select asp-for="CategoryId" class="form-control category-select" id="categorySelect" required>
+                                    <option value="">@Localizer["SelectCategory"]</option>
+                                    @foreach (var category in categories)
+                                    {
+                                        <option value="@category.Id" selected="@(Model.CategoryId == category.Id)">@category.Name</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="CategoryId" class="text-danger"></span>
+                            </div>
+
+                            <!-- Sub Category 1 -->
+                            <div class="category-step mb-4" id="subCategory1Container" style="@(subCategories1.Any() ? "" : "display: none;")">
+                                <label asp-for="SubCategory1Id" class="form-label category-label">
+                                    <i class="fas fa-folder-open me-2"></i>
+                                    @Localizer["SubCategory1"]
+                                </label>
+                                <select asp-for="SubCategory1Id" class="form-control category-select" id="subCategory1Select">
+                                    <option value="">@Localizer["SelectSubCategory1"]</option>
+                                    @foreach (var subCat in subCategories1)
+                                    {
+                                        <option value="@subCat.Id" selected="@(Model.SubCategory1Id == subCat.Id)">@subCat.Name</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="SubCategory1Id" class="text-danger"></span>
+                            </div>
+
+                            <!-- Sub Category 2 -->
+                            <div class="category-step mb-4" id="subCategory2Container" style="@(subCategories2.Any() ? "" : "display: none;")">
+                                <label asp-for="SubCategory2Id" class="form-label category-label">
+                                    <i class="fas fa-tags me-2"></i>
+                                    @Localizer["SubCategory2"]
+                                </label>
+                                <select asp-for="SubCategory2Id" class="form-control category-select" id="subCategory2Select">
+                                    <option value="">@Localizer["SelectSubCategory2"]</option>
+                                    @foreach (var subCat in subCategories2)
+                                    {
+                                        <option value="@subCat.Id" selected="@(Model.SubCategory2Id == subCat.Id)">@subCat.Name</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="SubCategory2Id" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Location Section -->
+                    <div class="form-section">
+                        <h5 class="section-title">
+                            <i class="fas fa-map-marker-alt me-2"></i>
+                            @Localizer["LocationInfo"]
+                        </h5>
+
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label asp-for="City" class="form-label">@Localizer["City"] *</label>
+                                <select asp-for="City" class="form-control" required>
+                                    <option value="">@Localizer["SelectCity"]</option>
+                                    <option value="Baghdad" selected="@(Model.City == "Baghdad")">@Localizer["Baghdad"]</option>
+                                    <option value="Basra" selected="@(Model.City == "Basra")">@Localizer["Basra"]</option>
+                                    <option value="Erbil" selected="@(Model.City == "Erbil")">@Localizer["Erbil"]</option>
+                                    <option value="Najaf" selected="@(Model.City == "Najaf")">@Localizer["Najaf"]</option>
+                                    <option value="Karbala" selected="@(Model.City == "Karbala")">@Localizer["Karbala"]</option>
+                                    <option value="Mosul" selected="@(Model.City == "Mosul")">@Localizer["Mosul"]</option>
+                                    <option value="Sulaymaniyah" selected="@(Model.City == "Sulaymaniyah")">@Localizer["Sulaymaniyah"]</option>
+                                    <option value="Babylon" selected="@(Model.City == "Babylon")">@Localizer["Babylon"]</option>
+                                    <option value="Dohuk" selected="@(Model.City == "Dohuk")">@Localizer["Dohuk"]</option>
+                                    <option value="Kirkuk" selected="@(Model.City == "Kirkuk")">@Localizer["Kirkuk"]</option>
+                                    <option value="Anbar" selected="@(Model.City == "Anbar")">@Localizer["Anbar"]</option>
+                                    <option value="Diyala" selected="@(Model.City == "Diyala")">@Localizer["Diyala"]</option>
+                                    <option value="Saladin" selected="@(Model.City == "Saladin")">@Localizer["Saladin"]</option>
+                                    <option value="Wasit" selected="@(Model.City == "Wasit")">@Localizer["Wasit"]</option>
+                                    <option value="ThiQar" selected="@(Model.City == "ThiQar")">@Localizer["ThiQar"]</option>
+                                    <option value="Muthanna" selected="@(Model.City == "Muthanna")">@Localizer["Muthanna"]</option>
+                                    <option value="Qadisiyyah" selected="@(Model.City == "Qadisiyyah")">@Localizer["Qadisiyyah"]</option>
+                                    <option value="Maysan" selected="@(Model.City == "Maysan")">@Localizer["Maysan"]</option>
+                                </select>
+                                <span asp-validation-for="City" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label asp-for="District" class="form-label">@Localizer["District"] *</label>
+                                <input asp-for="District" class="form-control" placeholder="@Localizer["DistrictExample"]" required>
+                                <span asp-validation-for="District" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label asp-for="Location" class="form-label">@Localizer["DetailedAddress"]</label>
+                                <input asp-for="Location" class="form-control" placeholder="@Localizer["AddressOptional"]">
+                                <span asp-validation-for="Location" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Current Images Section -->
+                    <div class="form-section">
+                        <h5 class="section-title">
+                            <i class="fas fa-images me-2"></i>
+                            @Localizer["CurrentImages"]
+                        </h5>
+
+                        @if (Model.ExistingImages.Any())
+                        {
+                            <div class="row g-3" id="existingImagesContainer">
+                                @foreach (var image in Model.ExistingImages)
+                                {
+                                    <div class="col-6 col-md-4 col-lg-3 existing-image-item" data-image-id="@image.Id">
+                                        <div class="image-card">
+                                            <img src="@image.ImagePath" class="img-fluid" alt="صورة الطلب">
+                                            <div class="image-overlay">
+                                                <button type="button" class="btn btn-danger btn-sm delete-image-btn"
+                                                        data-image-id="@image.Id" title="حذف الصورة">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                                <a href="@image.ImagePath" target="_blank" class="btn btn-light btn-sm" title="عرض بالحجم الكامل">
+                                                    <i class="fas fa-expand"></i>
+                                                </a>
+                                            </div>
+                                            <input type="hidden" name="ImagesToDelete" value="" class="image-delete-input" />
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                            <div id="noImagesMessage" class="alert alert-info mt-3" style="display: none;">
+                                <i class="fas fa-info-circle me-2"></i>
+                                لا توجد صور حالياً. يمكنك رفع صور جديدة.
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                لا توجد صور مرفقة بهذا الطلب
+                            </div>
+                        }
+
+                        <div class="mt-3">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                عدد الصور الحالية: <span id="currentImageCount">@Model.ExistingImages.Count</span> من 5
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- New Images Upload Section -->
+                    <div class="form-section">
+                        <h5 class="section-title">
+                            <i class="fas fa-cloud-upload-alt me-2"></i>
+                            @Localizer["AddNewImages"]
+                        </h5>
+
+                        <div class="upload-area">
+                            <input type="file" name="NewImages" id="newImages" class="form-control d-none"
+                                   multiple accept=".jpg,.jpeg,.png,.gif,.webp">
+
+                            <div class="upload-zone" id="uploadZone">
+                                <div class="upload-content">
+                                    <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                                    <h5 class="text-muted">@Localizer["ClickToUpload"]</h5>
+                                    <p class="text-muted small mb-0">@Localizer["OrDragImages"]</p>
+                                    <small class="text-muted d-block mt-2">
+                                        JPG, PNG, GIF, WEBP - الحد الأقصى 5 ميجابايت لكل صورة
+                                    </small>
+                                    <div class="mt-2">
+                                        <span class="badge bg-info" id="remainingImagesCount">
+                                            يمكنك رفع @(5 - Model.ExistingImages.Count) صور إضافية
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- New Images Preview -->
+                            <div id="newImagePreview" class="row g-2 mt-3"></div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="form-actions">
+                        <div class="row">
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <a href="@Url.Action("MyRequests")" class="btn btn-outline-secondary btn-lg w-100">
+                                    <i class="fas fa-arrow-right me-2"></i>
+                                    @Localizer["Cancel"]
+                                </a>
+                            </div>
+                            <div class="col-md-6">
+                                <button type="submit" class="btn btn-primary btn-lg w-100" id="submitBtn">
+                                    <i class="fas fa-save me-2"></i>
+                                    @Localizer["SaveChanges"]
+                                </button>
+                            </div>
+                        </div>
+                        <div class="text-center mt-3">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                @Localizer["ModificationReviewNote"]
+                            </small>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteImageModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    تأكيد حذف الصورة
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="deleteImagePreview" src="" class="img-fluid rounded mb-3" style="max-height: 200px;">
+                <p>هل أنت متأكد من حذف هذه الصورة؟</p>
+                <p class="text-danger small">لا يمكن التراجع عن هذا الإجراء</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteImage">
+                    <i class="fas fa-trash me-2"></i>
+                    حذف الصورة
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-section {
+        margin-bottom: 2.5rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid var(--border-color, #dee2e6);
+    }
+
+        .form-section:last-of-type {
+            border-bottom: none;
+        }
+
+    .section-title {
+        color: #b3962d;
+        margin-bottom: 1.5rem;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    .category-selection-container {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 1.5rem;
+    }
+
+    .category-step {
+        background: white;
+        border-radius: 10px;
+        padding: 1rem;
+        border: 1px solid #e9ecef;
+        transition: all 0.3s ease;
+    }
+
+    .category-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .category-select {
+        font-size: 1rem;
+        padding: 0.75rem;
+        border-radius: 8px;
+        border: 2px solid #dee2e6;
+    }
+
+        .category-select:focus {
+            border-color: #b3962d;
+            box-shadow: 0 0 0 0.2rem rgba(179, 150, 45, 0.25);
+        }
+
+    /* Image Cards */
+    .image-card {
+        position: relative;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+
+        .image-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .image-card img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+
+    .image-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .image-card:hover .image-overlay {
+        opacity: 1;
+    }
+
+    .image-overlay .btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+    }
+
+    /* Upload Zone */
+    .upload-zone {
+        border: 2px dashed #dee2e6;
+        border-radius: 15px;
+        padding: 3rem 2rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: #fafafa;
+    }
+
+        .upload-zone:hover {
+            border-color: #b3962d;
+            background: rgba(179, 150, 45, 0.05);
+        }
+
+        .upload-zone.dragover {
+            border-color: #28a745;
+            background: rgba(40, 167, 69, 0.1);
+            transform: scale(1.02);
+        }
+
+        .upload-zone.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+    .upload-content {
+        pointer-events: none;
+    }
+
+    /* New Image Preview */
+    .new-image-preview-item {
+        position: relative;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+        .new-image-preview-item img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+        }
+
+        .new-image-preview-item .remove-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            padding: 0;
+        }
+
+        .new-image-preview-item .image-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+            color: white;
+            padding: 0.8rem 0.5rem 0.4rem;
+            font-size: 0.7rem;
+        }
+
+    /* Form Actions */
+    .form-actions {
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 2px solid #e9ecef;
+    }
+
+    /* Marked for deletion */
+    .existing-image-item.marked-for-deletion .image-card {
+        opacity: 0.5;
+        filter: grayscale(100%);
+    }
+
+        .existing-image-item.marked-for-deletion .image-card::after {
+            content: 'سيتم الحذف';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(220, 53, 69, 0.9);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 0.85rem;
+        }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .upload-zone {
+            padding: 2rem 1rem;
+        }
+
+        .image-card img {
+            height: 120px;
+        }
+
+        .category-selection-container {
+            padding: 1rem;
+        }
+    }
+</style>
+
+@section Scripts {
+    <script>
+        // ==========================================
+        // Variables
+        // ==========================================
+        let newUploadedFiles = [];
+        let existingImagesCount = @Model.ExistingImages.Count;
+        let imagesToDelete = [];
+        const maxFiles = 5;
+        const maxFileSize = 5 * 1024 * 1024;
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+        let deleteImageModal;
+        let currentDeleteImageId = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            deleteImageModal = new bootstrap.Modal(document.getElementById('deleteImageModal'));
+            initializeImageUpload();
+            initializeCategoryDropdowns();
+            initializeDragAndDrop();
+            initializeDeleteButtons();
+            initializeFormSubmit();
+            updateRemainingCount();
+        });
+
+        // ==========================================
+        // Image Delete Handling
+        // ==========================================
+        function initializeDeleteButtons() {
+            document.querySelectorAll('.delete-image-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const imageId = this.dataset.imageId;
+                    const imageItem = this.closest('.existing-image-item');
+                    const imageSrc = imageItem.querySelector('img').src;
+
+                    currentDeleteImageId = imageId;
+                    document.getElementById('deleteImagePreview').src = imageSrc;
+                    deleteImageModal.show();
+                });
+            });
+
+            document.getElementById('confirmDeleteImage').addEventListener('click', function() {
+                if (currentDeleteImageId) {
+                    markImageForDeletion(currentDeleteImageId);
+                    deleteImageModal.hide();
+                }
+            });
+        }
+
+        function markImageForDeletion(imageId) {
+            const imageItem = document.querySelector(`.existing-image-item[data-image-id="${imageId}"]`);
+            if (imageItem) {
+                if (imageItem.classList.contains('marked-for-deletion')) {
+                    // إلغاء الحذف
+                    imageItem.classList.remove('marked-for-deletion');
+                    imagesToDelete = imagesToDelete.filter(id => id !== imageId);
+                    imageItem.querySelector('.image-delete-input').value = '';
+                    existingImagesCount++;
+                } else {
+                    // تحديد للحذف
+                    imageItem.classList.add('marked-for-deletion');
+                    imagesToDelete.push(imageId);
+                    imageItem.querySelector('.image-delete-input').value = imageId;
+                    existingImagesCount--;
+                }
+                updateRemainingCount();
+            }
+        }
+
+        // ==========================================
+        // New Image Upload
+        // ==========================================
+        function initializeImageUpload() {
+            const imageInput = document.getElementById('newImages');
+            const uploadZone = document.getElementById('uploadZone');
+
+            uploadZone.addEventListener('click', function() {
+                if (getRemainingCount() > 0) {
+                    imageInput.click();
+                } else {
+                    showAlert('تم الوصول للحد الأقصى من الصور', 'warning');
+                }
+            });
+
+            imageInput.addEventListener('change', function(e) {
+                handleNewImageSelection(e.target.files);
+            });
+        }
+
+        function initializeDragAndDrop() {
+            const uploadZone = document.getElementById('uploadZone');
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                uploadZone.addEventListener(eventName, preventDefaults, false);
+                document.body.addEventListener(eventName, preventDefaults, false);
+            });
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                uploadZone.addEventListener(eventName, () => {
+                    if (getRemainingCount() > 0) {
+                        uploadZone.classList.add('dragover');
+                    }
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                uploadZone.addEventListener(eventName, () => uploadZone.classList.remove('dragover'), false);
+            });
+
+            uploadZone.addEventListener('drop', (e) => {
+                if (getRemainingCount() > 0) {
+                    handleNewImageSelection(e.dataTransfer.files);
+                }
+            }, false);
+        }
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function handleNewImageSelection(files) {
+            const remaining = getRemainingCount();
+
+            Array.from(files).forEach(file => {
+                if (newUploadedFiles.length >= remaining) {
+                    showAlert(`يمكنك رفع ${remaining} صور إضافية فقط`, 'warning');
+                    return;
+                }
+
+                if (!allowedTypes.includes(file.type)) {
+                    showAlert(`نوع غير مدعوم: ${file.name}`, 'error');
+                    return;
+                }
+
+                if (file.size > maxFileSize) {
+                    showAlert(`حجم كبير: ${file.name}`, 'error');
+                    return;
+                }
+
+                if (!newUploadedFiles.some(f => f.name === file.name && f.size === file.size)) {
+                    newUploadedFiles.push(file);
+                }
+            });
+
+            rebuildNewImagePreview();
+            updateFileInput();
+            updateRemainingCount();
+        }
+
+        function rebuildNewImagePreview() {
+            const container = document.getElementById('newImagePreview');
+            container.innerHTML = '';
+
+            newUploadedFiles.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const col = document.createElement('div');
+                    col.className = 'col-4 col-md-3';
+                    col.innerHTML = `
+                        <div class="new-image-preview-item">
+                            <img src="${e.target.result}" class="img-fluid">
+                            <button type="button" class="btn btn-danger btn-sm remove-btn" onclick="removeNewImage(${index})">
+                                <i class="fas fa-times"></i>
+                            </button>
+                            <div class="image-info text-truncate">${file.name}</div>
+                        </div>
+                    `;
+                    container.appendChild(col);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function removeNewImage(index) {
+            newUploadedFiles.splice(index, 1);
+            rebuildNewImagePreview();
+            updateFileInput();
+            updateRemainingCount();
+        }
+
+        function updateFileInput() {
+            const dt = new DataTransfer();
+            newUploadedFiles.forEach(file => dt.items.add(file));
+            document.getElementById('newImages').files = dt.files;
+        }
+
+        function getRemainingCount() {
+            return maxFiles - existingImagesCount - newUploadedFiles.length + imagesToDelete.length;
+        }
+
+        function updateRemainingCount() {
+            const remaining = getRemainingCount();
+            const badge = document.getElementById('remainingImagesCount');
+            const uploadZone = document.getElementById('uploadZone');
+            const currentCountSpan = document.getElementById('currentImageCount');
+
+            currentCountSpan.textContent = existingImagesCount - imagesToDelete.length;
+
+            if (remaining <= 0) {
+                badge.textContent = 'تم الوصول للحد الأقصى من الصور';
+                badge.className = 'badge bg-danger';
+                uploadZone.classList.add('disabled');
+            } else {
+                badge.textContent = `يمكنك رفع ${remaining} صور إضافية`;
+                badge.className = 'badge bg-info';
+                uploadZone.classList.remove('disabled');
+            }
+
+            // Check if all images are deleted
+            const totalImages = existingImagesCount - imagesToDelete.length + newUploadedFiles.length;
+            const noImagesMsg = document.getElementById('noImagesMessage');
+            if (noImagesMsg) {
+                noImagesMsg.style.display = totalImages === 0 ? 'block' : 'none';
+            }
+        }
+
+        // ==========================================
+        // Category Dropdowns
+        // ==========================================
+        function initializeCategoryDropdowns() {
+            const categorySelect = document.getElementById('categorySelect');
+            const subCategory1Select = document.getElementById('subCategory1Select');
+
+            if (categorySelect) {
+                categorySelect.addEventListener('change', function() {
+                    const categoryId = this.value;
+                    const subCategory1Container = document.getElementById('subCategory1Container');
+                    const subCategory2Container = document.getElementById('subCategory2Container');
+
+                    if (categoryId) {
+                        loadSubCategories1(categoryId);
+                        subCategory1Container.style.display = 'block';
+                    } else {
+                        subCategory1Container.style.display = 'none';
+                        subCategory2Container.style.display = 'none';
+                    }
+
+                    resetSubCategory2();
+                });
+            }
+
+            if (subCategory1Select) {
+                subCategory1Select.addEventListener('change', function() {
+                    const subCategory1Id = this.value;
+                    const subCategory2Container = document.getElementById('subCategory2Container');
+
+                    if (subCategory1Id) {
+                        loadSubCategories2(subCategory1Id);
+                        subCategory2Container.style.display = 'block';
+                    } else {
+                        subCategory2Container.style.display = 'none';
+                        resetSubCategory2();
+                    }
+                });
+            }
+        }
+
+        function loadSubCategories1(categoryId) {
+            const select = document.getElementById('subCategory1Select');
+            select.innerHTML = '<option value="">جاري التحميل...</option>';
+
+            fetch(`/Requests/GetSubCategories1?categoryId=${categoryId}`)
+                .then(r => r.json())
+                .then(data => {
+                    select.innerHTML = '<option value="">@Localizer["SelectSubCategory1"]</option>';
+                    data.forEach(item => {
+                        select.innerHTML += `<option value="${item.id}">${item.name}</option>`;
+                    });
+                })
+                .catch(() => {
+                    select.innerHTML = '<option value="">خطأ في التحميل</option>';
+                });
+        }
+
+        function loadSubCategories2(subCategory1Id) {
+            const select = document.getElementById('subCategory2Select');
+            select.innerHTML = '<option value="">جاري التحميل...</option>';
+
+            fetch(`/Requests/GetSubCategories2?subCategory1Id=${subCategory1Id}`)
+                .then(r => r.json())
+                .then(data => {
+                    select.innerHTML = '<option value="">@Localizer["SelectSubCategory2"]</option>';
+                    if (data.length > 0) {
+                        data.forEach(item => {
+                            select.innerHTML += `<option value="${item.id}">${item.name}</option>`;
+                        });
+                    } else {
+                        select.innerHTML = '<option value="">لا توجد فئات فرعية</option>';
+                    }
+                })
+                .catch(() => {
+                    select.innerHTML = '<option value="">خطأ في التحميل</option>';
+                });
+        }
+
+        function resetSubCategory2() {
+            const select = document.getElementById('subCategory2Select');
+            select.innerHTML = '<option value="">@Localizer["SelectSubCategory2"]</option>';
+        }
+
+        // ==========================================
+        // Form Submit
+        // ==========================================
+        function initializeFormSubmit() {
+            const form = document.getElementById('editRequestForm');
+            const submitBtn = document.getElementById('submitBtn');
+
+            form.addEventListener('submit', function(e) {
+                // Add images to delete as hidden inputs
+                imagesToDelete.forEach(imageId => {
+                    const existingInput = form.querySelector(`input[name="ImagesToDelete"][value="${imageId}"]`);
+                    if (!existingInput) {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = 'ImagesToDelete';
+                        input.value = imageId;
+                        form.appendChild(input);
+                    }
+                });
+
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>جاري الحفظ...';
+
+                setTimeout(() => {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-save me-2"></i>@Localizer["SaveChanges"]';
+                }, 15000);
+            });
+        }
+
+        // ==========================================
+        // Alerts
+        // ==========================================
+        function showAlert(message, type = 'info') {
+            document.querySelectorAll('.alert.auto-dismiss').forEach(a => a.remove());
+
+            const icons = {
+                'success': 'fa-check-circle',
+                'error': 'fa-exclamation-circle',
+                'warning': 'fa-exclamation-triangle',
+                'info': 'fa-info-circle'
+            };
+
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show auto-dismiss`;
+            alertDiv.style.cssText = 'position:fixed;top:20px;right:20px;z-index:9999;max-width:350px;';
+            alertDiv.innerHTML = `<i class="fas ${icons[type]} me-2"></i>${message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+
+            document.body.appendChild(alertDiv);
+            setTimeout(() => alertDiv.remove(), 4000);
+        }
+    </script>
+}

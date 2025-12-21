@@ -1,261 +1,647 @@
-﻿@model MyRequestsViewModel
+@model MyRequestsViewModel
+@inject IStringLocalizer<SharedResource> Localizer
 @{
-    ViewData["Title"] = "طلباتي";
+    ViewData["Title"] = Localizer["MyRequests"];
 }
 
 <div class="container-custom">
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h1 class="display-6 text-primary">
-                <i class="fas fa-list-alt me-3"></i>
-                طلباتي
-            </h1>
-            <p class="text-muted">جميع الطلبات التي قمت بإضافتها</p>
+    <!-- Header Section -->
+    <div class="row mb-4 align-items-center">
+        <div class="col-lg-8">
+            <div class="page-header">
+                <h1 class="display-5 fw-bold text-primary mb-2">
+                    <i class="fas fa-list-alt me-3"></i>
+                    @Localizer["MyRequests"]
+                </h1>
+                <p class="text-muted mb-0">إدارة طلباتك ومتابعة حالتها</p>
+            </div>
         </div>
-        <div class="col-md-4 text-end">
-            <a href="/Requests/Create" class="btn btn-custom">
+        <div class="col-lg-4 text-end">
+            <a href="@Url.Action("Create", "Requests")" class="btn btn-primary btn-lg">
                 <i class="fas fa-plus me-2"></i>
-                إضافة طلب جديد
+                @Localizer["AddNewRequest"]
             </a>
         </div>
     </div>
 
+    <!-- Alert Messages -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Statistics Cards -->
     @if (Model.Requests.Any())
     {
-        <!-- Statistics -->
-        <div class="row g-3 mb-4">
-            <div class="col-md-3">
+        <div class="row mb-4">
+            <div class="col-6 col-md-3 mb-3">
                 <div class="stat-card bg-primary text-white">
-                    <h3>@Model.Requests.Count</h3>
-                    <p>إجمالي الطلبات</p>
+                    <div class="stat-icon">
+                        <i class="fas fa-list"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>@Model.Requests.Count</h3>
+                        <p class="mb-0">إجمالي الطلبات</p>
+                    </div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-6 col-md-3 mb-3">
+                <div class="stat-card bg-warning text-dark">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>@Model.Requests.Count(r => r.Status == RequestStatus.Pending || r.Status == RequestStatus.ModificationPending)</h3>
+                        <p class="mb-0">قيد المراجعة</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3 mb-3">
                 <div class="stat-card bg-success text-white">
-                    <h3>@Model.Requests.Count(r => r.Status == RequestStatus.Approved)</h3>
-                    <p>معتمد</p>
+                    <div class="stat-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>@Model.Requests.Count(r => r.Status == RequestStatus.Approved)</h3>
+                        <p class="mb-0">معتمد</p>
+                    </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="stat-card bg-warning text-white">
-                    <h3>@Model.Requests.Count(r => r.Status == RequestStatus.Pending)</h3>
-                    <p>قيد المراجعة</p>
-                </div>
-            </div>
-            <div class="col-md-3">
+            <div class="col-6 col-md-3 mb-3">
                 <div class="stat-card bg-danger text-white">
-                    <h3>@Model.Requests.Count(r => r.Status == RequestStatus.Rejected)</h3>
-                    <p>مرفوض</p>
+                    <div class="stat-icon">
+                        <i class="fas fa-times-circle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>@Model.Requests.Count(r => r.Status == RequestStatus.Rejected)</h3>
+                        <p class="mb-0">مرفوض</p>
+                    </div>
                 </div>
             </div>
         </div>
+    }
 
-        <!-- Requests List -->
-        <div class="card-custom">
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>العنوان</th>
-                            <th>الفئة</th>
-                            <th>الموقع</th>
-                            <th>الحالة</th>
-                            <th>التاريخ</th>
-                            <th>الإجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var request in Model.Requests)
-                        {
-                            <tr>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        @if (request.Images != null && request.Images.Any())
-                                        {
-                                            <img src="@request.Images.First().ImagePath"
-                                                 class="rounded me-2"
-                                                 style="width: 50px; height: 50px; object-fit: cover;"
-                                                 alt="@request.Title">
-                                        }
-                                        else
-                                        {
-                                            <div class="bg-light rounded me-2 d-flex align-items-center justify-content-center"
-                                                 style="width: 50px; height: 50px;">
-                                                <i class="fas fa-image text-muted"></i>
-                                            </div>
-                                        }
-                                        <div>
-                                            <strong>@request.Title</strong>
-                                            @if (!string.IsNullOrEmpty(request.Description) && request.Description.Length > 50)
+    <!-- Requests List -->
+    @if (Model.Requests.Any())
+    {
+        <div class="requests-list">
+            @foreach (var request in Model.Requests)
+            {
+                var statusClass = request.Status switch
+                {
+                    RequestStatus.Approved => "success",
+                    RequestStatus.Rejected => "danger",
+                    RequestStatus.Postponed => "secondary",
+                    RequestStatus.ModificationPending => "info",
+                    _ => "warning"
+                };
+
+                var statusText = request.Status switch
+                {
+                    RequestStatus.Approved => "معتمد",
+                    RequestStatus.Rejected => "مرفوض",
+                    RequestStatus.Postponed => "مؤجل",
+                    RequestStatus.ModificationPending => "تعديل قيد المراجعة",
+                    _ => "قيد المراجعة"
+                };
+
+                // السماح بالتعديل والحذف لجميع الحالات
+                var canEdit = true;
+                var canDelete = true;
+                var isApproved = request.Status == RequestStatus.Approved;
+
+                <div class="request-card mb-4" data-request-id="@request.Id">
+                    <div class="row g-0">
+                        <!-- Image Column -->
+                        <div class="col-md-3">
+                            <div class="request-image-container">
+                                @if (request.Images != null && request.Images.Any())
+                                {
+                                    <img src="@request.Images.First().ImagePath" class="request-image" alt="@request.Title">
+                                    @if (request.Images.Count > 1)
+                                    {
+                                        <span class="images-count">
+                                            <i class="fas fa-images me-1"></i>@request.Images.Count
+                                        </span>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="no-image">
+                                        <i class="fas fa-image fa-3x text-muted"></i>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Content Column -->
+                        <div class="col-md-9">
+                            <div class="request-content">
+                                <!-- Header -->
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <h5 class="request-title mb-1">@request.Title</h5>
+                                        <div class="request-meta">
+                                            <span class="badge bg-@statusClass me-2">
+                                                @statusText
+                                            </span>
+                                            <span class="text-muted small">
+                                                <i class="fas fa-calendar me-1"></i>
+                                                @request.CreatedAt.ToString("dd/MM/yyyy")
+                                            </span>
+                                            @if (request.IsModified)
                                             {
-                                                <br>
-                                                <small class="text-muted">@request.Description.Substring(0, 50)...</small>
+                                                <span class="text-info small ms-2">
+                                                    <i class="fas fa-edit me-1"></i>
+                                                    تم التعديل (@request.ModificationCount مرة)
+                                                </span>
                                             }
                                         </div>
                                     </div>
-                                </td>
-                                <td>
-                                    <span class="badge bg-primary">@request.Category.Name</span>
+                                    <div class="dropdown">
+                                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            @if (request.Status == RequestStatus.Approved)
+                                            {
+                                                <li>
+                                                    <a class="dropdown-item" href="@Url.Action("Details", "Requests", new { id = request.Id })">
+                                                        <i class="fas fa-eye me-2 text-primary"></i>
+                                                        عرض الطلب
+                                                    </a>
+                                                </li>
+                                            }
+                                            @if (canEdit)
+                                            {
+                                                <li>
+                                                    <a class="dropdown-item" href="@Url.Action("Edit", "Requests", new { id = request.Id })">
+                                                        <i class="fas fa-edit me-2 text-warning"></i>
+                                                        تعديل الطلب
+                                                    </a>
+                                                </li>
+                                            }
+                                            @if (canDelete)
+                                            {
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <button class="dropdown-item text-danger delete-request-btn" data-request-id="@request.Id" data-request-title="@request.Title">
+                                                        <i class="fas fa-trash me-2"></i>
+                                                        حذف الطلب
+                                                    </button>
+                                                </li>
+                                            }
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <!-- Categories -->
+                                <div class="request-categories mb-2">
+                                    @if (request.Category != null)
+                                    {
+                                        <span class="badge bg-primary me-1">@request.Category.Name</span>
+                                    }
                                     @if (request.SubCategory1 != null)
                                     {
-                                        <br>
-                                        <span class="badge bg-secondary mt-1">@request.SubCategory1.Name</span>
+                                        <span class="badge bg-secondary me-1">@request.SubCategory1.Name</span>
                                     }
-                                </td>
-                                <td>
-                                    <small>
-                                        <i class="fas fa-map-marker-alt text-primary me-1"></i>
-                                        @request.City - @request.District
-                                    </small>
-                                </td>
-                                <td>
-                                    @switch (request.Status)
+                                    @if (request.SubCategory2 != null)
                                     {
-                                        case RequestStatus.Pending:
-                                            <span class="badge bg-warning">
-                                                <i class="fas fa-clock me-1"></i>
-                                                في الانتظار
-                                            </span>
-                                            break;
-                                        case RequestStatus.Approved:
-                                            <span class="badge bg-success">
-                                                <i class="fas fa-check-circle me-1"></i>
-                                                معتمد
-                                            </span>
-                                            break;
-                                        case RequestStatus.Rejected:
-                                            <span class="badge bg-danger">
-                                                <i class="fas fa-times-circle me-1"></i>
-                                                مرفوض
-                                            </span>
-                                            break;
-                                        case RequestStatus.Postponed:
-                                            <span class="badge bg-secondary">
-                                                <i class="fas fa-pause-circle me-1"></i>
-                                                مؤجل
-                                            </span>
-                                            break;
+                                        <span class="badge bg-info">@request.SubCategory2.Name</span>
                                     }
-                                </td>
-                                <td>
-                                    <small>
-                                        @request.CreatedAt.ToString("dd/MM/yyyy")
-                                        <br>
-                                        <span class="text-muted">@request.CreatedAt.ToString("hh:mm tt")</span>
-                                    </small>
-                                </td>
-                                <td>
-                                    <div class="btn-group">
-                                        @if (request.Status == RequestStatus.Approved)
-                                        {
-                                            <a href="/Requests/Details/@request.Id"
-                                               class="btn btn-sm btn-outline-primary"
-                                               title="عرض">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                        }
-                                        else
-                                        {
-                                            <button class="btn btn-sm btn-outline-secondary" disabled title="غير معتمد">
-                                                <i class="fas fa-eye-slash"></i>
-                                            </button>
-                                        }
+                                </div>
+
+                                <!-- Description -->
+                                <p class="request-description text-muted mb-2">
+                                    @(request.Description.Length > 150 ? request.Description.Substring(0, 150) + "..." : request.Description)
+                                </p>
+
+                                <!-- Location -->
+                                <div class="request-location text-muted small mb-3">
+                                    <i class="fas fa-map-marker-alt me-1"></i>
+                                    @request.City - @request.District
+                                </div>
+
+                                <!-- Rejection Reason -->
+                                @if (request.Status == RequestStatus.Rejected && !string.IsNullOrEmpty(request.RejectionReason))
+                                {
+                                    <div class="alert alert-danger py-2 mb-2">
+                                        <i class="fas fa-exclamation-circle me-2"></i>
+                                        <strong>سبب الرفض:</strong> @request.RejectionReason
                                     </div>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
+                                }
 
-            <!-- Pagination -->
-            @if (Model.TotalPages > 1)
-            {
-                <nav aria-label="pagination" class="mt-4">
-                    <ul class="pagination justify-content-center">
-                        @if (Model.CurrentPage > 1)
-                        {
-                            <li class="page-item">
-                                <a class="page-link" href="?page=@(Model.CurrentPage - 1)">
-                                    <i class="fas fa-chevron-right"></i>
-                                </a>
-                            </li>
-                        }
-
-                        @for (int i = Math.Max(1, Model.CurrentPage - 2); i <= Math.Min(Model.TotalPages, Model.CurrentPage + 2); i++)
-                        {
-                            <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
-                                <a class="page-link" href="?page=@i">@i</a>
-                            </li>
-                        }
-
-                        @if (Model.CurrentPage < Model.TotalPages)
-                        {
-                            <li class="page-item">
-                                <a class="page-link" href="?page=@(Model.CurrentPage + 1)">
-                                    <i class="fas fa-chevron-left"></i>
-                                </a>
-                            </li>
-                        }
-                    </ul>
-                </nav>
+                                <!-- Actions -->
+                                <div class="request-actions">
+                                    @if (request.Status == RequestStatus.Approved)
+                                    {
+                                        <a href="@Url.Action("Details", "Requests", new { id = request.Id })" class="btn btn-success btn-sm">
+                                            <i class="fas fa-eye me-1"></i>
+                                            عرض في الموقع
+                                        </a>
+                                    }
+                                    @if (canEdit)
+                                    {
+                                        <a href="@Url.Action("Edit", "Requests", new { id = request.Id })"
+                                           class="btn @(isApproved ? "btn-outline-warning" : "btn-warning") btn-sm"
+                                           title="@(isApproved ? "تعديل الطلب - سيحتاج موافقة الإدارة" : "تعديل الطلب")">
+                                            <i class="fas fa-edit me-1"></i>
+                                            تعديل
+                                            @if (isApproved)
+                                            {
+                                                <i class="fas fa-exclamation-circle ms-1" title="سيحتاج موافقة الإدارة"></i>
+                                            }
+                                        </a>
+                                    }
+                                    @if (canDelete)
+                                    {
+                                        <button class="btn @(isApproved ? "btn-danger" : "btn-outline-danger") btn-sm delete-request-btn"
+                                                data-request-id="@request.Id"
+                                                data-request-title="@request.Title"
+                                                data-is-approved="@isApproved.ToString().ToLower()">
+                                            <i class="fas fa-trash me-1"></i>
+                                            حذف
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             }
         </div>
+
+        <!-- Pagination -->
+        @if (Model.TotalPages > 1)
+        {
+            <nav aria-label="pagination" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    @if (Model.CurrentPage > 1)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" href="?page=@(Model.CurrentPage - 1)">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                    }
+
+                    @for (int i = Math.Max(1, Model.CurrentPage - 2); i <= Math.Min(Model.TotalPages, Model.CurrentPage + 2); i++)
+                    {
+                        <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                            <a class="page-link" href="?page=@i">@i</a>
+                        </li>
+                    }
+
+                    @if (Model.CurrentPage < Model.TotalPages)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" href="?page=@(Model.CurrentPage + 1)">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        }
     }
     else
     {
-        <div class="text-center py-5">
-            <div class="card-custom">
-                <i class="fas fa-inbox fa-5x text-muted mb-4"></i>
-                <h4 class="text-muted mb-3">لا توجد طلبات حتى الآن</h4>
-                <p class="text-muted mb-4">ابدأ بإضافة أول طلب لك</p>
-                <a href="/Requests/Create" class="btn btn-custom btn-lg">
-                    <i class="fas fa-plus me-2"></i>
-                    إضافة طلب جديد
-                </a>
+        <!-- Empty State -->
+        <div class="empty-state text-center py-5">
+            <div class="empty-state-icon mb-4">
+                <i class="fas fa-inbox fa-5x text-muted"></i>
             </div>
+            <h3 class="text-muted mb-3">لا توجد طلبات حتى الآن</h3>
+            <p class="text-muted mb-4">ابدأ بإضافة طلبك الأول</p>
+            <a href="@Url.Action("Create", "Requests")" class="btn btn-primary btn-lg">
+                <i class="fas fa-plus me-2"></i>
+                أضف طلبك الأول
+            </a>
         </div>
     }
+</div>
 
-    <!-- Back Button -->
-    <div class="text-center mt-4">
-        <a href="/Profile" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-right me-2"></i>
-            العودة إلى الملف الشخصي
-        </a>
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteRequestModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    تأكيد حذف الطلب
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <i class="fas fa-trash-alt fa-4x text-danger mb-3"></i>
+                <p class="mb-2">هل أنت متأكد من حذف الطلب:</p>
+                <h5 id="deleteRequestTitle" class="text-primary"></h5>
+
+                <!-- تحذير خاص للطلبات المعتمدة -->
+                <div id="approvedWarning" class="alert alert-warning mt-3" style="display: none;">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>تحذير:</strong> هذا الطلب معتمد ومعروض حالياً في الموقع!
+                </div>
+
+                <p class="text-danger small mt-3">
+                    <i class="fas fa-exclamation-circle me-1"></i>
+                    لا يمكن التراجع عن هذا الإجراء وسيتم حذف جميع الصور المرتبطة
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteRequest">
+                    <i class="fas fa-trash me-2"></i>
+                    حذف الطلب
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
+<!-- Hidden form for CSRF token -->
+<form id="csrfTokenForm" style="display: none;">
+    @Html.AntiForgeryToken()
+</form>
+
 <style>
     .stat-card {
-        padding: 20px;
-        border-radius: 10px;
-        text-align: center;
+        border-radius: 15px;
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: transform 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     }
 
-        .stat-card h3 {
-            margin: 0;
-            font-size: 2rem;
-            font-weight: bold;
+        .stat-card:hover {
+            transform: translateY(-5px);
         }
 
-        .stat-card p {
-            margin: 5px 0 0 0;
-            font-size: 0.9rem;
-            opacity: 0.9;
+    .stat-icon {
+        font-size: 2rem;
+        opacity: 0.8;
+    }
+
+    .stat-content h3 {
+        font-size: 1.8rem;
+        font-weight: bold;
+        margin-bottom: 0;
+    }
+
+    .stat-content p {
+        font-size: 0.85rem;
+        opacity: 0.9;
+    }
+
+    .request-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+        .request-card:hover {
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+            transform: translateY(-3px);
         }
 
-    .table th {
-        background-color: #f8f9fa;
+    .request-image-container {
+        position: relative;
+        height: 100%;
+        min-height: 200px;
+    }
+
+    .request-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        min-height: 200px;
+    }
+
+    .no-image {
+        width: 100%;
+        height: 100%;
+        min-height: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f8f9fa;
+    }
+
+    .images-count {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+    }
+
+    .request-content {
+        padding: 1.5rem;
+    }
+
+    .request-title {
+        font-size: 1.2rem;
         font-weight: 600;
-        border-bottom: 2px solid #dee2e6;
+        color: #333;
     }
 
-    .table td {
-        vertical-align: middle;
+    .request-meta {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.5rem;
     }
 
-    .table-hover tbody tr:hover {
-        background-color: rgba(179, 150, 45, 0.05);
+    .request-description {
+        font-size: 0.9rem;
+        line-height: 1.6;
+    }
+
+    .request-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .empty-state {
+        background: white;
+        border-radius: 20px;
+        padding: 3rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .empty-state-icon {
+        opacity: 0.5;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .request-image-container {
+            min-height: 150px;
+        }
+
+        .request-image {
+            min-height: 150px;
+        }
+
+        .no-image {
+            min-height: 150px;
+        }
+
+        .stat-card {
+            padding: 1rem;
+        }
+
+        .stat-content h3 {
+            font-size: 1.4rem;
+        }
+
+        .stat-content p {
+            font-size: 0.75rem;
+        }
+
+        .request-actions .btn {
+            flex: 1;
+            min-width: 100px;
+        }
     }
 </style>
+
+@section Scripts {
+    <script>
+        let deleteRequestModal;
+        let currentDeleteRequestId = null;
+        let currentRequestIsApproved = false;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            deleteRequestModal = new bootstrap.Modal(document.getElementById('deleteRequestModal'));
+            initializeDeleteButtons();
+        });
+
+        function initializeDeleteButtons() {
+            document.querySelectorAll('.delete-request-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    currentDeleteRequestId = this.dataset.requestId;
+                    currentRequestIsApproved = this.dataset.isApproved === 'true';
+
+                    document.getElementById('deleteRequestTitle').textContent = this.dataset.requestTitle;
+
+                    // إظهار/إخفاء تحذير الطلبات المعتمدة
+                    const approvedWarning = document.getElementById('approvedWarning');
+                    approvedWarning.style.display = currentRequestIsApproved ? 'block' : 'none';
+
+                    deleteRequestModal.show();
+                });
+            });
+
+            document.getElementById('confirmDeleteRequest').addEventListener('click', function() {
+                if (currentDeleteRequestId) {
+                    deleteRequest(currentDeleteRequestId);
+                }
+            });
+        }
+
+        function deleteRequest(requestId) {
+            const btn = document.getElementById('confirmDeleteRequest');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>جاري الحذف...';
+
+            // Get the anti-forgery token from the hidden form
+            const token = document.querySelector('#csrfTokenForm input[name="__RequestVerificationToken"]')?.value ||
+                          document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+            if (!token) {
+                showAlert('خطأ في الأمان. يرجى تحديث الصفحة والمحاولة مرة أخرى.', 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-trash me-2"></i>حذف الطلب';
+                deleteRequestModal.hide();
+                return;
+            }
+
+            // Create form data
+            const formData = new FormData();
+            formData.append('__RequestVerificationToken', token);
+            formData.append('id', requestId);
+
+            fetch('/Requests/Delete', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Remove the card with animation
+                    const card = document.querySelector(`.request-card[data-request-id="${requestId}"]`);
+                    if (card) {
+                        card.style.transition = 'all 0.3s ease';
+                        card.style.opacity = '0';
+                        card.style.transform = 'translateX(-100%)';
+                        setTimeout(() => {
+                            card.remove();
+                            // Check if no more requests
+                            if (document.querySelectorAll('.request-card').length === 0) {
+                                location.reload();
+                            }
+                        }, 300);
+                    }
+                    showAlert(data.message, 'success');
+                } else {
+                    showAlert(data.message || 'حدث خطأ أثناء حذف الطلب', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('حدث خطأ أثناء حذف الطلب. يرجى المحاولة مرة أخرى.', 'error');
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-trash me-2"></i>حذف الطلب';
+                deleteRequestModal.hide();
+            });
+        }
+
+        function showAlert(message, type = 'info') {
+            document.querySelectorAll('.alert.auto-dismiss').forEach(a => a.remove());
+
+            const icons = {
+                'success': 'fa-check-circle',
+                'error': 'fa-exclamation-circle',
+                'warning': 'fa-exclamation-triangle',
+                'info': 'fa-info-circle'
+            };
+
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show auto-dismiss`;
+            alertDiv.style.cssText = 'position:fixed;top:20px;right:20px;z-index:9999;max-width:350px;box-shadow:0 4px 15px rgba(0,0,0,0.2);';
+            alertDiv.innerHTML = `<i class="fas ${icons[type]} me-2"></i>${message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+
+            document.body.appendChild(alertDiv);
+            setTimeout(() => alertDiv.remove(), 4000);
+        }
+    </script>
+}

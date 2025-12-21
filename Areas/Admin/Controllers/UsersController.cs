@@ -113,6 +113,7 @@ namespace ReverseMarket.Areas.Admin.Controllers
 
             return View(viewModel);
         }
+
         public async Task<IActionResult> Details(string id)
         {
             if (string.IsNullOrEmpty(id))
@@ -122,6 +123,7 @@ namespace ReverseMarket.Areas.Admin.Controllers
 
             var user = await _userManager.Users
                 .Include(u => u.StoreCategories)
+                    .ThenInclude(sc => sc.Category)
                 .FirstOrDefaultAsync(u => u.Id == id);
 
             if (user == null)
@@ -129,14 +131,13 @@ namespace ReverseMarket.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            //var roles = await _userManager.GetRolesAsync(user);
-            //var storeCategories = user.StoreCategories?.Select(sc => sc.Category?.Name ?? "").ToList();
-            //var userViewModel = UserViewModel.FromApplicationUser(user, roles, storeCategories);
+            var roles = await _userManager.GetRolesAsync(user);
+            var storeCategories = user.StoreCategories?.Select(sc => sc.Category?.Name ?? "").ToList();
 
-            //return View(userViewModel);
-            var userModel = User.FromApplicationUser(user);
+            // ✅ استخدام UserViewModel بدلاً من User لتجنب التعارض
+            var userViewModel = UserViewModel.FromApplicationUser(user, roles, storeCategories);
 
-            return View(userModel);
+            return View(userViewModel);
         }
 
         public async Task<IActionResult> Edit(string id)
@@ -192,7 +193,7 @@ namespace ReverseMarket.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-  
+
         public async Task<IActionResult> Edit(EditUserViewModel model)
         {
             if (!ModelState.IsValid)
@@ -295,30 +296,6 @@ namespace ReverseMarket.Areas.Admin.Controllers
 
             return RedirectToAction(nameof(Index));
         }
-        //public async Task<IActionResult> ToggleStatus(string id)
-        //{
-        //    if (string.IsNullOrEmpty(id))
-        //    {
-        //        return Json(new { success = false, message = "معرف المستخدم غير صحيح" });
-        //    }
-
-        //    var user = await _userManager.FindByIdAsync(id);
-        //    if (user == null)
-        //    {
-        //        return Json(new { success = false, message = "المستخدم غير موجود" });
-        //    }
-
-        //    user.IsActive = !user.IsActive;
-        //    user.UpdatedAt = System.DateTime.Now;
-        //    var result = await _userManager.UpdateAsync(user);
-
-        //    if (result.Succeeded)
-        //    {
-        //        return Json(new { success = true, isActive = user.IsActive });
-        //    }
-
-        //    return Json(new { success = false, message = "فشل تحديث حالة المستخدم" });
-        //}
 
         [HttpPost]
         [ValidateAntiForgeryToken]

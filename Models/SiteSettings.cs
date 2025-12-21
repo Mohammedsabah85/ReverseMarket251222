@@ -10,6 +10,16 @@ namespace ReverseMarket.Models
         [MaxLength(200)]
         public string? SiteLogo { get; set; }
 
+        // Default Images
+        [MaxLength(200)]
+        public string? DefaultRequestImage { get; set; }
+
+        [MaxLength(200)]
+        public string? DefaultStoreImage { get; set; }
+
+        [MaxLength(200)]
+        public string? DefaultUserAvatar { get; set; }
+
         // About Us - Multilingual
         [MaxLength(500)]
         public string? AboutUs { get; set; }

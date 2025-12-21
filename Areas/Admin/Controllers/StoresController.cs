@@ -6,6 +6,7 @@ using ReverseMarket.Data;
 using ReverseMarket.Models.Identity;
 using ReverseMarket.CustomWhatsappService;
 using ReverseMarket.Models;
+using ReverseMarket.Services;
 
 namespace ReverseMarket.Areas.Admin.Controllers
 {
@@ -17,17 +18,20 @@ namespace ReverseMarket.Areas.Admin.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly WhatsAppService _whatsAppService;
         private readonly ILogger<StoresController> _logger;
+        private readonly INotificationService _notificationService;
 
         public StoresController(
             ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
             WhatsAppService whatsAppService,
-            ILogger<StoresController> logger)
+            ILogger<StoresController> logger,
+            INotificationService notificationService)
         {
             _context = context;
             _userManager = userManager;
             _whatsAppService = whatsAppService;
             _logger = logger;
+            _notificationService = notificationService;
         }
 
         // 📋 عرض جميع المتاجر
@@ -622,35 +626,45 @@ namespace ReverseMarket.Areas.Admin.Controllers
         {
             try
             {
-                if (!string.IsNullOrEmpty(store.PhoneNumber))
+                var status = isActive ? "تفعيل" : "إيقاف";
+                var title = $"تحديث حالة متجرك";
+                var message = $"مرحباً {store.StoreName}!\n\n" +
+                             $"تم {status} متجرك في السوق العكسي.\n\n";
+
+                if (isActive)
                 {
-                    var status = isActive ? "تفعيل" : "إيقاف";
-                    var message = $"مرحباً {store.StoreName}!\n\n" +
-                                 $"تم {status} متجرك في السوق العكسي.\n\n";
-
-                    if (isActive)
-                    {
-                        message += "يمكنك الآن استقبال الطلبات والتواصل مع العملاء.\n\n";
-                    }
-                    else
-                    {
-                        message += "في حالة وجود استفسار، يرجى التواصل معنا.\n\n";
-                    }
-
-                    message += "شكراً لك - السوق العكسي";
-
-                    var whatsAppRequest = new WhatsAppMessageRequest
-                    {
-                        recipient = store.PhoneNumber,
-                        message = message
-                    };
-
-                    await _whatsAppService.SendMessageAsync(whatsAppRequest);
+                    message += "🎉 يمكنك الآن استقبال الطلبات والتواصل مع العملاء.\n\n" +
+                              "يمكنك الدخول إلى لوحة التحكم لإدارة متجرك.\n\n";
                 }
+                else
+                {
+                    message += "⚠️ تم إيقاف متجرك مؤقتاً.\n\n" +
+                              "في حالة وجود استفسار، يرجى التواصل معنا.\n\n";
+                }
+
+                message += "شكراً لك - السوق العكسي 🛒";
+
+                // إرسال إشعار عبر النظام والبريد الإلكتروني والواتساب
+                var notification = await _notificationService.CreateNotificationAsync(
+                    title: title,
+                    message: message,
+                    type: isActive ? NotificationType.StoreActivated : NotificationType.StoreDeactivated,
+                    userId: store.Id,
+                    isFromAdmin: true,
+                    adminId: User.Identity?.Name
+                );
+
+                await _notificationService.SendNotificationAsync(notification,
+                    sendEmail: true,
+                    sendWhatsApp: true,
+                    sendInApp: true);
+
+                _logger.LogInformation("✅ تم إرسال إشعار {Status} المتجر {StoreName} للمستخدم {UserId}",
+                    status, store.StoreName, store.Id);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "خطأ في إرسال إشعار تغيير حالة المتجر");
+                _logger.LogError(ex, "❌ خطأ في إرسال إشعار تغيير حالة المتجر {StoreName}", store.StoreName);
             }
         }
 

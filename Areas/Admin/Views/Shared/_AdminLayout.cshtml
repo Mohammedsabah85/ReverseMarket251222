@@ -1,4 +1,13 @@
-﻿<!DOCTYPE html>
+﻿@{
+    // Security check - ensure user is admin
+    if (!User.Identity.IsAuthenticated || !User.IsInRole("Admin"))
+    {
+        Context.Response.Redirect("/Error/AccessDenied");
+        return;
+    }
+}
+﻿
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="utf-8" />
@@ -161,19 +170,16 @@
         }
 
         @@media (max-width: 768px) {
-            .sidebar
+            .sidebar {
+                width: 100%;
+                position: relative;
+                min-height: auto;
+            }
 
-        {
-            width: 100%;
-            position: relative;
-            min-height: auto;
-        }
-
-        .main-content {
-            margin-right: 0;
-            padding: 1rem;
-        }
-
+            .main-content {
+                margin-right: 0;
+                padding: 1rem;
+            }
         }
     </style>
 </head>
@@ -252,9 +258,15 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Settings" ? "active" : "")" href="/Admin/Settings">
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Settings" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")" href="/Admin/Settings">
                     <i class="fas fa-cog"></i>
                     إعدادات الموقع
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Settings" && ViewContext.RouteData.Values["action"]?.ToString() == "DefaultImages" ? "active" : "")" href="/Admin/Settings/DefaultImages">
+                    <i class="fas fa-images"></i>
+                    الصور الافتراضية
                 </a>
             </li>
 
@@ -542,6 +554,12 @@
                 <a class="nav-link" href="/Admin/Settings">
                     <i class="fas fa-cog"></i>
                     إعدادات الموقع
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/Admin/Settings/DefaultImages">
+                    <i class="fas fa-images"></i>
+                    الصور الافتراضية
                 </a>
             </li>
             <li class="nav-item mt-3 pt-3 border-top border-secondary">

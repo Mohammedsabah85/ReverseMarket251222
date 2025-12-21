@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ReverseMarket.Data;
 using ReverseMarket.Models;
@@ -10,6 +11,7 @@ using ReverseMarket.Services;
 namespace ReverseMarket.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = "Admin")]
     public class RequestsController : Controller
     {
         private readonly ApplicationDbContext _dbContext;
@@ -377,17 +379,17 @@ namespace ReverseMarket.Areas.Admin.Controllers
                     return RedirectToAction("Index");
                 }
 
-            // ✅ حذف الإشعارات المرتبطة بالطلب أولاً
-            var relatedNotifications = await _dbContext.Notifications
-                .Where(n => n.RequestId == id)
-                .ToListAsync();
+                // ✅ حذف الإشعارات المرتبطة بالطلب أولاً
+                var relatedNotifications = await _dbContext.Notifications
+                    .Where(n => n.RequestId == id)
+                    .ToListAsync();
 
-            if (relatedNotifications.Any())
-            {
-                _dbContext.Notifications.RemoveRange(relatedNotifications);
-            }
-            
-            if (request.Images != null && request.Images.Any())
+                if (relatedNotifications.Any())
+                {
+                    _dbContext.Notifications.RemoveRange(relatedNotifications);
+                }
+
+                if (request.Images != null && request.Images.Any())
                 {
                     _dbContext.RequestImages.RemoveRange(request.Images);
                 }
@@ -397,13 +399,15 @@ namespace ReverseMarket.Areas.Admin.Controllers
 
                 TempData["SuccessMessage"] = "تم حذف الطلب بنجاح";
                 return RedirectToAction("Index");
-        }
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "خطأ في حذف الطلب: {RequestId}", id);
                 TempData["ErrorMessage"] = "حدث خطأ أثناء حذف الطلب";
-                return RedirectToAction("Details", new { id
-    });
+                return RedirectToAction("Details", new
+                {
+                    id
+                });
             }
         }
 

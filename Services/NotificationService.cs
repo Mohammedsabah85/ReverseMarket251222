@@ -113,6 +113,15 @@ namespace ReverseMarket.Services
                         .Where(u => u.UserType == notification.TargetUserType.Value && u.IsActive)
                         .ToListAsync();
                 }
+                else if (notification.Type == NotificationType.NewRequestForAdmin ||
+                         notification.Type == NotificationType.NewStoreForAdmin ||
+                         notification.Type == NotificationType.AdminAnnouncement ||
+                         notification.Type == NotificationType.SystemNotification)
+                {
+                    // إشعار للإدارة فقط - البحث عن المستخدمين الذين لديهم دور Admin
+                    var adminUsers = await _userManager.GetUsersInRoleAsync("Admin");
+                    targetUsers = adminUsers.Where(u => u.IsActive).ToList();
+                }
                 else
                 {
                     // إشعار لجميع المستخدمين
@@ -347,16 +356,18 @@ namespace ReverseMarket.Services
                 NotificationType.RequestDeleted => "🗑️ تم حذف الطلب",
                 NotificationType.NewRequestForAdmin => "📋 طلب جديد للمراجعة",
                 NotificationType.NewRequestForStore => "🛒 طلب جديد متاح",
-                
+
                 // إشعارات المتاجر
                 NotificationType.StoreApproved => "✅ تم اعتماد المتجر",
                 NotificationType.StoreRejected => "❌ تم رفض المتجر",
+                NotificationType.StoreActivated => "🎉 تم تفعيل المتجر",
+                NotificationType.StoreDeactivated => "⚠️ تم إيقاف المتجر",
                 NotificationType.NewStoreForAdmin => "🏪 متجر جديد للمراجعة",
-                
+
                 // إشعارات الروابط
                 NotificationType.UrlChangeApproved => "✅ تم اعتماد الروابط",
                 NotificationType.UrlChangeRejected => "❌ تم رفض الروابط",
-                
+
                 // إشعارات عامة
                 NotificationType.AdminAnnouncement => "📢 إعلان من الإدارة",
                 NotificationType.SystemNotification => "⚙️ إشعار النظام",
@@ -377,16 +388,18 @@ namespace ReverseMarket.Services
                 NotificationType.RequestDeleted => "🗑️",
                 NotificationType.NewRequestForAdmin => "📋",
                 NotificationType.NewRequestForStore => "🛒",
-                
+
                 // إشعارات المتاجر
                 NotificationType.StoreApproved => "✅",
                 NotificationType.StoreRejected => "❌",
+                NotificationType.StoreActivated => "🎉",
+                NotificationType.StoreDeactivated => "⚠️",
                 NotificationType.NewStoreForAdmin => "🏪",
-                
+
                 // إشعارات الروابط
                 NotificationType.UrlChangeApproved => "✅",
                 NotificationType.UrlChangeRejected => "❌",
-                
+
                 // إشعارات عامة
                 NotificationType.AdminAnnouncement => "📢",
                 NotificationType.SystemNotification => "⚙️",

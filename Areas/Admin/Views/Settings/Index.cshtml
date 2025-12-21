@@ -5,6 +5,12 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h3>إعدادات الموقع</h3>
+    <div>
+        <a href="@Url.Action("DefaultImages", "Settings")" class="btn btn-outline-primary">
+            <i class="fas fa-images me-2"></i>
+            إدارة الصور الافتراضية
+        </a>
+    </div>
 </div>
 
 @if (TempData["SuccessMessage"] != null)
@@ -49,7 +55,7 @@
                 <!-- General Settings -->
                 <div class="tab-pane fade show active" id="general" role="tabpanel">
                     <h5 class="text-primary mb-3"><i class="fas fa-image me-2"></i>شعار الموقع</h5>
-                    
+
                     @if (!string.IsNullOrEmpty(Model.SiteLogo))
                     {
                         <div class="mb-3">
@@ -67,7 +73,7 @@
                 <!-- About Us -->
                 <div class="tab-pane fade" id="about" role="tabpanel">
                     <h5 class="text-primary mb-3"><i class="fas fa-info-circle me-2"></i>من نحن</h5>
-                    
+
                     <!-- Arabic -->
                     <div class="mb-3">
                         <label asp-for="AboutUs" class="form-label">
@@ -102,7 +108,7 @@
                 <!-- Contact Information -->
                 <div class="tab-pane fade" id="contact" role="tabpanel">
                     <h5 class="text-primary mb-3"><i class="fas fa-phone me-2"></i>معلومات التواصل</h5>
-                    
+
                     <div class="row">
                         <div class="col-md-4">
                             <div class="mb-3">
@@ -179,7 +185,7 @@
                 <div class="tab-pane fade" id="legal" role="tabpanel">
                     <!-- Privacy Policy -->
                     <h5 class="text-primary mb-3"><i class="fas fa-shield-alt me-2"></i>سياسة الخصوصية</h5>
-                    
+
                     <div class="mb-3">
                         <label asp-for="PrivacyPolicy" class="form-label">سياسة الخصوصية (عربي) 🇮🇶</label>
                         <textarea asp-for="PrivacyPolicy" class="form-control" rows="6"></textarea>
@@ -202,7 +208,7 @@
 
                     <!-- Terms of Use -->
                     <h5 class="text-primary mb-3"><i class="fas fa-file-contract me-2"></i>شروط الاستخدام</h5>
-                    
+
                     <div class="mb-3">
                         <label asp-for="TermsOfUse" class="form-label">شروط الاستخدام (عربي) 🇮🇶</label>
                         <textarea asp-for="TermsOfUse" class="form-control" rows="6"></textarea>
@@ -225,7 +231,7 @@
 
                     <!-- Copyright Info -->
                     <h5 class="text-primary mb-3"><i class="fas fa-copyright me-2"></i>معلومات حقوق الطبع</h5>
-                    
+
                     <div class="mb-3">
                         <label asp-for="CopyrightInfo" class="form-label">حقوق الطبع (عربي) 🇮🇶</label>
                         <input asp-for="CopyrightInfo" class="form-control" placeholder="© 2024 السوق العكسي. جميع الحقوق محفوظة.">
@@ -248,7 +254,7 @@
 
                     <!-- Intellectual Property -->
                     <h5 class="text-primary mb-3"><i class="fas fa-balance-scale me-2"></i>الملكية الفكرية</h5>
-                    
+
                     <div class="mb-3">
                         <label asp-for="IntellectualProperty" class="form-label">الملكية الفكرية (عربي) 🇮🇶</label>
                         <textarea asp-for="IntellectualProperty" class="form-control" rows="6"></textarea>
@@ -336,17 +342,17 @@
         transition: all 0.3s;
     }
 
-    .nav-tabs .nav-link:hover {
-        border-bottom-color: #b3962d;
-        background-color: transparent;
-    }
+        .nav-tabs .nav-link:hover {
+            border-bottom-color: #b3962d;
+            background-color: transparent;
+        }
 
-    .nav-tabs .nav-link.active {
-        color: #b3962d;
-        font-weight: 600;
-        border-bottom-color: #b3962d;
-        background-color: transparent;
-    }
+        .nav-tabs .nav-link.active {
+            color: #b3962d;
+            font-weight: 600;
+            border-bottom-color: #b3962d;
+            background-color: transparent;
+        }
 
     .tab-content {
         padding-top: 1.5rem;

@@ -51,7 +51,7 @@
 
         // إضافة حدث النقر
         indicator.addEventListener('click', scrollToBottom);
-        indicator.addEventListener('keypress', function(e) {
+        indicator.addEventListener('keypress', function (e) {
             if (e.key === 'Enter' || e.key === ' ') {
                 scrollToBottom();
             }
@@ -72,10 +72,10 @@
 
         // حساب المسافة المتبقية
         const scrollRemaining = scrollable.scrollHeight - scrollable.scrollTop - scrollable.clientHeight;
-        
+
         // التمرير بمقدار نصف الشاشة أو إلى النهاية
         const scrollAmount = Math.min(scrollRemaining, scrollable.clientHeight * 0.7);
-        
+
         scrollable.scrollBy({
             top: scrollAmount,
             behavior: 'smooth'
@@ -110,7 +110,7 @@
     function updateScrollIndicator() {
         const indicator = document.querySelector('.scroll-indicator');
         const collapse = document.querySelector('.navbar-collapse.show');
-        
+
         if (!indicator) return;
 
         // إخفاء المؤشر إذا كانت القائمة مغلقة أو على شاشة كبيرة
@@ -127,7 +127,7 @@
 
         // حساب ما إذا كان هناك محتوى للتمرير
         const scrollRemaining = scrollable.scrollHeight - scrollable.scrollTop - scrollable.clientHeight;
-        
+
         // إظهار المؤشر إذا كان هناك محتوى أسفل (أكثر من 50 بكسل)
         if (scrollRemaining > 50) {
             indicator.classList.add('visible');
@@ -177,7 +177,7 @@
 
         // إزالة المستمعات السابقة
         scrollable.removeEventListener('scroll', updateScrollIndicator);
-        
+
         // إضافة مستمع جديد
         scrollable.addEventListener('scroll', updateScrollIndicator, { passive: true });
     }
@@ -261,13 +261,13 @@
                 if (!isOpen) {
                     menu.classList.add('show');
                     this.setAttribute('aria-expanded', 'true');
-                    
+
                     // التمرير إلى القائمة
                     scrollToElement(menu);
-                    
+
                     // تحديث مؤشر التمرير
                     setTimeout(updateScrollIndicator, 150);
-                    
+
                     console.log('📂 تم فتح قائمة اللغات');
                 } else {
                     menu.classList.remove('show');
@@ -350,64 +350,11 @@
     }
 
     /**
-     * تهيئة قائمة الإشعارات
+     * تهيئة قائمة الإشعارات - تم نقلها إلى notification-manager.js
      */
     function initNotificationDropdown() {
-        const notificationBell = document.getElementById('notificationDropdown');
-        const notificationMenu = document.getElementById('notification-menu');
-
-        if (!notificationBell || !notificationMenu) {
-            console.log('ℹ️ لم يتم العثور على عناصر الإشعارات');
-            return;
-        }
-
-        // إزالة المستمعات السابقة
-        const newBell = notificationBell.cloneNode(true);
-        notificationBell.parentNode.replaceChild(newBell, notificationBell);
-
-        newBell.addEventListener('click', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            console.log('🔔 تم النقر على جرس الإشعارات');
-
-            const isOpen = notificationMenu.style.display === 'block';
-
-            // إغلاق القوائم الأخرى
-            closeOtherDropdowns(notificationMenu);
-
-            if (isOpen) {
-                notificationMenu.style.display = 'none';
-                this.setAttribute('aria-expanded', 'false');
-                console.log('📁 تم إغلاق قائمة الإشعارات');
-            } else {
-                notificationMenu.style.display = 'block';
-                this.setAttribute('aria-expanded', 'true');
-                console.log('📂 تم فتح قائمة الإشعارات');
-            }
-        });
-
-        // منع إغلاق القائمة عند النقر داخلها
-        notificationMenu.addEventListener('click', function (e) {
-            e.stopPropagation();
-
-            if (e.target.tagName === 'A' && e.target.href) {
-                if (e.target.href.includes('/Notifications')) {
-                    setTimeout(() => {
-                        notificationMenu.style.display = 'none';
-                    }, 100);
-                }
-            }
-        });
-
-        // منع أحداث الماوس من إغلاق القائمة
-        ['mouseenter', 'mousemove', 'mouseover', 'mouseleave'].forEach(event => {
-            notificationMenu.addEventListener(event, function (e) {
-                e.stopPropagation();
-            });
-        });
-
-        console.log('✅ تم تهيئة قائمة الإشعارات');
+        // تم نقل هذه الوظيفة إلى notification-manager.js لتجنب التضارب
+        console.log('ℹ️ تهيئة الإشعارات تتم عبر notification-manager.js');
     }
 
     /**
@@ -527,7 +474,7 @@
             if (!navbar.contains(e.target)) {
                 closeNavbar();
                 closeAllDropdowns();
-                
+
                 if (notificationMenu) {
                     notificationMenu.style.display = 'none';
                 }
@@ -561,7 +508,7 @@
             if (e.key === 'Escape') {
                 closeNavbar();
                 closeAllDropdowns();
-                
+
                 const notificationMenu = document.getElementById('notification-menu');
                 if (notificationMenu) {
                     notificationMenu.style.display = 'none';

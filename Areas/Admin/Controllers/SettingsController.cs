@@ -1,11 +1,14 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ReverseMarket.Data;
 using ReverseMarket.Models;
+using ReverseMarket.Models.ViewModels;
 
 namespace ReverseMarket.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = "Admin")]
     public class SettingsController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -109,6 +112,86 @@ namespace ReverseMarket.Areas.Admin.Controllers
             }
 
             return $"/uploads/site/{fileName}";
+        }
+
+        // GET: Admin/Settings/DefaultImages
+        public async Task<IActionResult> DefaultImages()
+        {
+            var settings = await _context.SiteSettings.FirstOrDefaultAsync() ?? new SiteSettings();
+
+            var viewModel = new DefaultImagesViewModel
+            {
+                DefaultRequestImage = settings.DefaultRequestImage,
+                DefaultStoreImage = settings.DefaultStoreImage,
+                DefaultUserAvatar = settings.DefaultUserAvatar
+            };
+
+            return View(viewModel);
+        }
+
+        // POST: Admin/Settings/DefaultImages
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DefaultImages(DefaultImagesViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var settings = await _context.SiteSettings.FirstOrDefaultAsync();
+
+                if (settings == null)
+                {
+                    settings = new SiteSettings();
+                    _context.SiteSettings.Add(settings);
+                }
+
+                // Upload Request Image if provided
+                if (model.RequestImageFile != null)
+                {
+                    var requestImagePath = await SaveDefaultImageAsync(model.RequestImageFile, "request");
+                    settings.DefaultRequestImage = requestImagePath;
+                }
+
+                // Upload Store Image if provided
+                if (model.StoreImageFile != null)
+                {
+                    var storeImagePath = await SaveDefaultImageAsync(model.StoreImageFile, "store");
+                    settings.DefaultStoreImage = storeImagePath;
+                }
+
+                // Upload User Avatar if provided
+                if (model.UserAvatarFile != null)
+                {
+                    var userAvatarPath = await SaveDefaultImageAsync(model.UserAvatarFile, "user");
+                    settings.DefaultUserAvatar = userAvatarPath;
+                }
+
+                // Update timestamp
+                settings.UpdatedAt = DateTime.Now;
+
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = "تم حفظ الصور الافتراضية بنجاح";
+                return RedirectToAction("DefaultImages");
+            }
+
+            return View(model);
+        }
+
+        // Helper method to save default images
+        private async Task<string> SaveDefaultImageAsync(IFormFile image, string type)
+        {
+            var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "defaults");
+            Directory.CreateDirectory(uploadsFolder);
+
+            var fileName = $"default_{type}" + Path.GetExtension(image.FileName);
+            var filePath = Path.Combine(uploadsFolder, fileName);
+
+            using (var fileStream = new FileStream(filePath, FileMode.Create))
+            {
+                await image.CopyToAsync(fileStream);
+            }
+
+            return $"/uploads/defaults/{fileName}";
         }
     }
 }

@@ -10,12 +10,12 @@
                 <div class="text-center mb-4">
                     <i class="fas fa-address-book fa-3x text-primary mb-3"></i>
                     <h1 class="h3 text-primary">إعدادات التواصل</h1>
-                    <p class="text-muted">حدد كيف تريد أن يتواصل معك البائعون</p>
+                    <p class="text-muted">حدد كيف تريد أن يتواصل معك الآخرون</p>
                 </div>
 
                 <div class="alert alert-info mb-4">
                     <i class="fas fa-info-circle me-2"></i>
-                    <strong>ملاحظة:</strong> سيتمكن البائعون من التواصل معك فقط عبر الوسائل التي تقوم بتفعيلها هنا.
+                    <strong>ملاحظة:</strong> سيتمكن المستخدمون من التواصل معك فقط عبر الوسائل التي تقوم بتفعيلها هنا.
                 </div>
 
                 <form asp-action="ContactSettings" method="post" id="contactSettingsForm">
@@ -43,7 +43,7 @@
                                             </div>
                                         </div>
                                         <div class="form-check form-switch">
-                                            <input asp-for="AllowPhoneCall" class="form-check-input contact-toggle" 
+                                            <input asp-for="AllowPhoneCall" class="form-check-input contact-toggle"
                                                    type="checkbox" role="switch" data-card="phoneCallCard">
                                         </div>
                                     </div>
@@ -64,7 +64,7 @@
                                             </div>
                                         </div>
                                         <div class="form-check form-switch">
-                                            <input asp-for="AllowWhatsApp" class="form-check-input contact-toggle" 
+                                            <input asp-for="AllowWhatsApp" class="form-check-input contact-toggle"
                                                    type="checkbox" role="switch" data-card="whatsAppCard">
                                         </div>
                                     </div>
@@ -85,7 +85,7 @@
                                             </div>
                                         </div>
                                         <div class="form-check form-switch">
-                                            <input asp-for="AllowEmail" class="form-check-input contact-toggle" 
+                                            <input asp-for="AllowEmail" class="form-check-input contact-toggle"
                                                    type="checkbox" role="switch" data-card="emailCard">
                                         </div>
                                     </div>
@@ -106,7 +106,7 @@
                                             </div>
                                         </div>
                                         <div class="form-check form-switch">
-                                            <input asp-for="AllowSMS" class="form-check-input contact-toggle" 
+                                            <input asp-for="AllowSMS" class="form-check-input contact-toggle"
                                                    type="checkbox" role="switch" data-card="smsCard">
                                         </div>
                                     </div>
@@ -127,7 +127,7 @@
                                             </div>
                                         </div>
                                         <div class="form-check form-switch">
-                                            <input asp-for="AllowInAppChat" class="form-check-input contact-toggle" 
+                                            <input asp-for="AllowInAppChat" class="form-check-input contact-toggle"
                                                    type="checkbox" role="switch" data-card="chatCard">
                                         </div>
                                     </div>
@@ -158,7 +158,7 @@
                                 </label>
                                 <div class="input-group">
                                     <span class="input-group-text">+</span>
-                                    <input asp-for="AlternativeWhatsApp" class="form-control" 
+                                    <input asp-for="AlternativeWhatsApp" class="form-control"
                                            placeholder="964xxxxxxxxxx">
                                 </div>
                                 <small class="form-text text-muted">
@@ -206,7 +206,7 @@
                     <div class="form-section">
                         <h5 class="section-title">
                             <i class="fas fa-eye me-2"></i>
-                            معاينة كيف سيرى البائعون خيارات التواصل
+                            معاينة كيف سيرى المستخدمون خيارات التواصل
                         </h5>
 
                         <div class="preview-card">
@@ -264,19 +264,19 @@
         height: 100%;
     }
 
-    .contact-option-card:hover {
-        border-color: #b3962d;
-        box-shadow: 0 4px 12px rgba(179, 150, 45, 0.15);
-    }
+        .contact-option-card:hover {
+            border-color: #b3962d;
+            box-shadow: 0 4px 12px rgba(179, 150, 45, 0.15);
+        }
 
-    .contact-option-card.active {
-        background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
-        border-color: #4caf50;
-    }
+        .contact-option-card.active {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            border-color: #4caf50;
+        }
 
-    .contact-option-card:not(.active) {
-        opacity: 0.6;
-    }
+        .contact-option-card:not(.active) {
+            opacity: 0.6;
+        }
 
     .contact-icon-wrapper {
         width: 50px;
@@ -294,10 +294,10 @@
         cursor: pointer;
     }
 
-    .form-check-input:checked {
-        background-color: #4caf50;
-        border-color: #4caf50;
-    }
+        .form-check-input:checked {
+            background-color: #4caf50;
+            border-color: #4caf50;
+        }
 
     .preview-card {
         background: #fafafa;
@@ -312,11 +312,25 @@
         font-weight: 500;
     }
 
-    .bg-primary-subtle { background-color: rgba(13, 110, 253, 0.1); }
-    .bg-success-subtle { background-color: rgba(25, 135, 84, 0.1); }
-    .bg-info-subtle { background-color: rgba(13, 202, 240, 0.1); }
-    .bg-warning-subtle { background-color: rgba(255, 193, 7, 0.1); }
-    .bg-secondary-subtle { background-color: rgba(108, 117, 125, 0.1); }
+    .bg-primary-subtle {
+        background-color: rgba(13, 110, 253, 0.1);
+    }
+
+    .bg-success-subtle {
+        background-color: rgba(25, 135, 84, 0.1);
+    }
+
+    .bg-info-subtle {
+        background-color: rgba(13, 202, 240, 0.1);
+    }
+
+    .bg-warning-subtle {
+        background-color: rgba(255, 193, 7, 0.1);
+    }
+
+    .bg-secondary-subtle {
+        background-color: rgba(108, 117, 125, 0.1);
+    }
 </style>
 
 @section Scripts {
@@ -365,7 +379,7 @@
                 const previewContainer = document.getElementById('previewButtons');
                 const previewNotes = document.getElementById('previewNotes');
                 const previewNotesText = document.getElementById('previewNotesText');
-                
+
                 let html = '';
 
                 if (document.querySelector('[name="AllowPhoneCall"]').checked) {
@@ -393,7 +407,7 @@
                 // ملاحظات التواصل
                 const notes = contactNotes.value.trim();
                 const time = document.querySelector('[name="PreferredContactTime"]').value;
-                
+
                 if (notes || time) {
                     let notesHtml = '';
                     if (time) notesHtml += '<strong>أفضل وقت:</strong> ' + time + '<br>';

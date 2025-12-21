@@ -528,10 +528,10 @@ namespace ReverseMarket.Controllers
                 return NotFound();
             }
 
-            // ✅ متاح للمشترين فقط
-            if (user.UserType != UserType.Buyer)
+            // ✅ متاح للمشترين والمتاجر
+            if (user.UserType != UserType.Buyer && user.UserType != UserType.Seller)
             {
-                TempData["ErrorMessage"] = "إعدادات التواصل متاحة للمشترين فقط.";
+                TempData["ErrorMessage"] = "إعدادات التواصل متاحة للمشترين والمتاجر فقط.";
                 return RedirectToAction("Index");
             }
 
@@ -565,9 +565,9 @@ namespace ReverseMarket.Controllers
 
             var user = await _userManager.FindByIdAsync(userId);
 
-            if (user == null || user.UserType != UserType.Buyer)
+            if (user == null || (user.UserType != UserType.Buyer && user.UserType != UserType.Seller))
             {
-                TempData["ErrorMessage"] = "إعدادات التواصل متاحة للمشترين فقط.";
+                TempData["ErrorMessage"] = "إعدادات التواصل متاحة للمشترين والمتاجر فقط.";
                 return RedirectToAction("Index");
             }
 

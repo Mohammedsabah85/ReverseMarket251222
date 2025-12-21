@@ -31,10 +31,46 @@ const notificationManager = {
 
         // إضافة event listener لفتح القائمة المنسدلة
         const dropdownToggle = document.getElementById('notificationDropdown');
-        if (dropdownToggle) {
-            dropdownToggle.addEventListener('click', () => {
-                this.loadNotifications();
-                this.updateBadgeCount();
+        const notificationMenu = document.getElementById('notification-menu');
+
+        if (dropdownToggle && notificationMenu) {
+            dropdownToggle.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const isOpen = notificationMenu.style.display === 'block';
+
+                // إغلاق جميع القوائم الأخرى
+                document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                    if (menu !== notificationMenu) {
+                        menu.style.display = 'none';
+                    }
+                });
+
+                // تبديل حالة قائمة الإشعارات
+                if (isOpen) {
+                    notificationMenu.style.display = 'none';
+                    dropdownToggle.setAttribute('aria-expanded', 'false');
+                } else {
+                    notificationMenu.style.display = 'block';
+                    dropdownToggle.setAttribute('aria-expanded', 'true');
+                    // تحميل الإشعارات عند فتح القائمة
+                    this.loadNotifications();
+                    this.updateBadgeCount();
+                }
+            });
+
+            // منع إغلاق القائمة عند النقر داخلها
+            notificationMenu.addEventListener('click', function (e) {
+                e.stopPropagation();
+            });
+
+            // إغلاق القائمة عند النقر خارجها
+            document.addEventListener('click', function (e) {
+                if (!dropdownToggle.contains(e.target) && !notificationMenu.contains(e.target)) {
+                    notificationMenu.style.display = 'none';
+                    dropdownToggle.setAttribute('aria-expanded', 'false');
+                }
             });
         }
     },
@@ -234,43 +270,54 @@ const notificationManager = {
     },
 
     updateBadgeCount: function () {
+        console.log('🔄 تحديث عداد الإشعارات...');
         fetch('/Notifications/GetUnreadCount')
             .then(response => response.json())
             .then(data => {
                 const count = data.count || 0;
+                console.log('📊 عدد الإشعارات غير المقروءة:', count);
+
                 if (this.badge) {
                     if (count > 0) {
                         // تحديث النص
                         this.badge.textContent = count > 99 ? '99+' : count;
-                        
+
                         // إضافة كلاس للأرقام الكبيرة
                         if (count > 9) {
                             this.badge.classList.add('large-count');
                         } else {
                             this.badge.classList.remove('large-count');
                         }
-                        
+
                         // إظهار النقطة الحمراء
                         this.badge.style.display = 'flex';
-                        
+                        this.badge.style.visibility = 'visible';
+
                         // إضافة تأثير نبضة للإشعارات الجديدة
                         this.badge.style.animation = 'pulse-badge 2s infinite';
                         this.badge.classList.add('new-notification');
-                        
+
                         // تحديث عنوان الصفحة
                         this.updatePageTitle(count);
+
+                        console.log('✅ تم إظهار النقطة الحمراء مع العدد:', count);
                     } else {
                         this.badge.style.display = 'none';
+                        this.badge.style.visibility = 'hidden';
                         this.badge.classList.remove('large-count', 'new-notification');
                         this.badge.style.animation = '';
                         this.updatePageTitle(0);
+
+                        console.log('✅ تم إخفاء النقطة الحمراء (لا توجد إشعارات)');
                     }
+                } else {
+                    console.error('❌ عنصر notification-badge غير موجود!');
                 }
             })
-            .catch(err => console.error('خطأ في تحديث العداد:', err));
+            .catch(err => console.error('❌ خطأ في تحديث العداد:', err));
     },
 
-    updatePageTitle: function(count) {
+    updatePageTitle: function (count) {
         const originalTitle = document.title.replace(/^\(\d+\)\s*/, '');
         if (count > 0) {
             document.title = `(${count}) ${originalTitle}`;
@@ -323,16 +370,16 @@ const notificationManager = {
             'RequestDeleted': 'fa-trash text-danger',
             'NewRequestForAdmin': 'fa-clipboard-list text-primary',
             'NewRequestForStore': 'fa-shopping-cart text-primary',
-            
+
             // إشعارات المتاجر
             'StoreApproved': 'fa-store text-success',
             'StoreRejected': 'fa-store-slash text-danger',
             'NewStoreForAdmin': 'fa-store-alt text-primary',
-            
+
             // إشعارات الروابط
             'UrlChangeApproved': 'fa-link text-success',
             'UrlChangeRejected': 'fa-unlink text-danger',
-            
+
             // إشعارات عامة
             'AdminAnnouncement': 'fa-bullhorn text-warning',
             'SystemNotification': 'fa-cog text-secondary'
@@ -356,74 +403,12 @@ const notificationManager = {
 };
 
 // تهيئة عند تحميل الصفحة
-//document.addEventListener('DOMContentLoaded', function () {
-//    if (document.getElementById('notification-badge')) {
-//        notificationManager.init();
-//    }
-//});
-// تهيئة عند تحميل الصفحة
 document.addEventListener('DOMContentLoaded', function () {
-    const notificationBell = document.getElementById('notificationDropdown');
-    const notificationMenu = document.getElementById('notification-menu');
-
-    if (!notificationBell || !notificationMenu) {
-        console.log('⚠️ عناصر الإشعارات غير موجودة');
-        return;
-    }
-
     // تهيئة مدير الإشعارات
     if (document.getElementById('notification-badge')) {
         notificationManager.init();
+        console.log('✅ تم تهيئة نظام الإشعارات');
+    } else {
+        console.log('⚠️ عنصر notification-badge غير موجود');
     }
-
-    // معالج النقر على الجرس
-    notificationBell.addEventListener('click', function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-
-        const isOpen = notificationMenu.style.display === 'block';
-
-        // إغلاق جميع القوائم الأخرى أولاً
-        document.querySelectorAll('.dropdown-menu').forEach(menu => {
-            if (menu !== notificationMenu) {
-                menu.style.display = 'none';
-            }
-        });
-
-        // تبديل حالة قائمة الإشعارات
-        if (isOpen) {
-            notificationMenu.style.display = 'none';
-            this.setAttribute('aria-expanded', 'false');
-            console.log('📁 تم إغلاق قائمة الإشعارات');
-        } else {
-            notificationMenu.style.display = 'block';
-            this.setAttribute('aria-expanded', 'true');
-            console.log('📂 تم فتح قائمة الإشعارات');
-        }
-    });
-
-    // منع إغلاق القائمة عند النقر داخلها
-    notificationMenu.addEventListener('click', function (e) {
-        // السماح بالإغلاق فقط عند النقر على روابط خارجية
-        if (e.target.tagName === 'A' && e.target.href && e.target.href.includes('/Notifications')) {
-            return; // دع الرابط يعمل
-        }
-        e.stopPropagation(); // منع إغلاق القائمة
-    });
-
-    // إغلاق القائمة عند النقر خارجها
-    document.addEventListener('click', function (e) {
-        if (!notificationBell.contains(e.target) && !notificationMenu.contains(e.target)) {
-            notificationMenu.style.display = 'none';
-            notificationBell.setAttribute('aria-expanded', 'false');
-        }
-    });
-
-    // إغلاق القائمة عند الضغط على Escape
-    document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape' && notificationMenu.style.display === 'block') {
-            notificationMenu.style.display = 'none';
-            notificationBell.setAttribute('aria-expanded', 'false');
-        }
-    });
 });

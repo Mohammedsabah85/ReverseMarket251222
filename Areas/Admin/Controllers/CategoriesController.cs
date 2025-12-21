@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ReverseMarket.Data;
@@ -7,6 +8,7 @@ using ReverseMarket.Models;
 namespace ReverseMarket.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = "Admin")]
     public class CategoriesController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -299,11 +301,11 @@ namespace ReverseMarket.Areas.Admin.Controllers
         {
             //if (ModelState.IsValid)
             //{
-                _context.Update(subCategory);
-                await _context.SaveChangesAsync();
+            _context.Update(subCategory);
+            await _context.SaveChangesAsync();
 
-                TempData["SuccessMessage"] = "تم تحديث الفئة الفرعية الأولى بنجاح";
-                return RedirectToAction("Index");
+            TempData["SuccessMessage"] = "تم تحديث الفئة الفرعية الأولى بنجاح";
+            return RedirectToAction("Index");
             //}
 
             var category = await _context.Categories.FindAsync(subCategory.CategoryId);
@@ -334,11 +336,11 @@ namespace ReverseMarket.Areas.Admin.Controllers
         {
             //if (ModelState.IsValid)
             //{
-                _context.Update(subCategory);
-                await _context.SaveChangesAsync();
+            _context.Update(subCategory);
+            await _context.SaveChangesAsync();
 
-                TempData["SuccessMessage"] = "تم تحديث الفئة الفرعية الثانية بنجاح";
-                return RedirectToAction("Index");
+            TempData["SuccessMessage"] = "تم تحديث الفئة الفرعية الثانية بنجاح";
+            return RedirectToAction("Index");
             //}
 
             var subCategory1 = await _context.SubCategories1

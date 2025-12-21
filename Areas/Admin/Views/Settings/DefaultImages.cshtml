@@ -1,0 +1,193 @@
+﻿@model ReverseMarket.Models.ViewModels.DefaultImagesViewModel
+@{
+    ViewData["Title"] = "إدارة الصور الافتراضية";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-images me-2"></i>
+                        إدارة الصور الافتراضية
+                    </h4>
+                </div>
+                <div class="card-body">
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="fas fa-check-circle me-2"></i>
+                            @TempData["SuccessMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <form asp-action="DefaultImages" method="post" enctype="multipart/form-data">
+                        <div class="row">
+                            <!-- Default Request Image -->
+                            <div class="col-md-4 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-header bg-info text-white">
+                                        <h5 class="mb-0">
+                                            <i class="fas fa-shopping-cart me-2"></i>
+                                            الصورة الافتراضية للطلبات
+                                        </h5>
+                                    </div>
+                                    <div class="card-body text-center">
+                                        <div class="mb-3">
+                                            @if (!string.IsNullOrEmpty(Model.DefaultRequestImage))
+                                            {
+                                                <img src="@Model.DefaultRequestImage" alt="الصورة الافتراضية للطلبات"
+                                                     class="img-fluid rounded shadow" style="max-height: 200px;">
+                                            }
+                                            else
+                                            {
+                                                <div class="bg-light rounded d-flex align-items-center justify-content-center"
+                                                     style="height: 200px;">
+                                                    <i class="fas fa-image text-muted" style="font-size: 3rem;"></i>
+                                                </div>
+                                            }
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label asp-for="RequestImageFile" class="form-label">رفع صورة جديدة</label>
+                                            <input asp-for="RequestImageFile" type="file" class="form-control"
+                                                   accept="image/*" onchange="previewImage(this, 'requestPreview')">
+                                            <span asp-validation-for="RequestImageFile" class="text-danger"></span>
+                                        </div>
+
+                                        <div id="requestPreview" class="mt-2"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Default Store Image -->
+                            <div class="col-md-4 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-header bg-success text-white">
+                                        <h5 class="mb-0">
+                                            <i class="fas fa-store me-2"></i>
+                                            الصورة الافتراضية للمتاجر
+                                        </h5>
+                                    </div>
+                                    <div class="card-body text-center">
+                                        <div class="mb-3">
+                                            @if (!string.IsNullOrEmpty(Model.DefaultStoreImage))
+                                            {
+                                                <img src="@Model.DefaultStoreImage" alt="الصورة الافتراضية للمتاجر"
+                                                     class="img-fluid rounded shadow" style="max-height: 200px;">
+                                            }
+                                            else
+                                            {
+                                                <div class="bg-light rounded d-flex align-items-center justify-content-center"
+                                                     style="height: 200px;">
+                                                    <i class="fas fa-image text-muted" style="font-size: 3rem;"></i>
+                                                </div>
+                                            }
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label asp-for="StoreImageFile" class="form-label">رفع صورة جديدة</label>
+                                            <input asp-for="StoreImageFile" type="file" class="form-control"
+                                                   accept="image/*" onchange="previewImage(this, 'storePreview')">
+                                            <span asp-validation-for="StoreImageFile" class="text-danger"></span>
+                                        </div>
+
+                                        <div id="storePreview" class="mt-2"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Default User Avatar -->
+                            <div class="col-md-4 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-header bg-warning text-dark">
+                                        <h5 class="mb-0">
+                                            <i class="fas fa-user me-2"></i>
+                                            الصورة الافتراضية للمستخدمين
+                                        </h5>
+                                    </div>
+                                    <div class="card-body text-center">
+                                        <div class="mb-3">
+                                            @if (!string.IsNullOrEmpty(Model.DefaultUserAvatar))
+                                            {
+                                                <img src="@Model.DefaultUserAvatar" alt="الصورة الافتراضية للمستخدمين"
+                                                     class="img-fluid rounded-circle shadow" style="max-height: 200px; max-width: 200px;">
+                                            }
+                                            else
+                                            {
+                                                <div class="bg-light rounded-circle d-flex align-items-center justify-content-center mx-auto"
+                                                     style="height: 200px; width: 200px;">
+                                                    <i class="fas fa-user text-muted" style="font-size: 3rem;"></i>
+                                                </div>
+                                            }
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label asp-for="UserAvatarFile" class="form-label">رفع صورة جديدة</label>
+                                            <input asp-for="UserAvatarFile" type="file" class="form-control"
+                                                   accept="image/*" onchange="previewImage(this, 'userPreview')">
+                                            <span asp-validation-for="UserAvatarFile" class="text-danger"></span>
+                                        </div>
+
+                                        <div id="userPreview" class="mt-2"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                    <a href="@Url.Action("Index", "Settings")" class="btn btn-secondary me-md-2">
+                                        <i class="fas fa-arrow-left me-2"></i>
+                                        العودة للإعدادات
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>
+                                        حفظ الصور الافتراضية
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function previewImage(input, previewId) {
+        const preview = document.getElementById(previewId);
+        preview.innerHTML = '';
+
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.className = 'img-fluid rounded shadow mt-2';
+                img.style.maxHeight = '150px';
+
+                const label = document.createElement('small');
+                label.className = 'text-muted d-block mt-1';
+                label.textContent = 'معاينة الصورة الجديدة';
+
+                preview.appendChild(img);
+                preview.appendChild(label);
+            };
+
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

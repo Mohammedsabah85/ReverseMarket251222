@@ -302,16 +302,14 @@ namespace ReverseMarket.Controllers
         [Authorize]
         public async Task<IActionResult> Create(CreateRequestViewModel model)
         {
-            // إزالة التحقق من SubCategory2Ids إذا لم تكن هناك فئات فرعية متاحة
-            if (model.SubCategory2Ids == null || !model.SubCategory2Ids.Any())
+            // التحقق من وجود فئات فرعية ثانية للفئة المختارة
+            if (model.SubCategory1Id.HasValue)
             {
-                // التحقق من وجود فئات فرعية ثانية للفئة المختارة
-                var hasSubCategories2 = model.SubCategory1Id.HasValue &&
-                    await _context.SubCategories2.AnyAsync(s => s.SubCategory1Id == model.SubCategory1Id.Value);
-
+                var hasSubCategories2 = await _context.SubCategories2.AnyAsync(s => s.SubCategory1Id == model.SubCategory1Id.Value);
                 if (!hasSubCategories2)
                 {
-                    ModelState.Remove("SubCategory2Ids");
+                    // إذا لم تكن هناك فئات فرعية ثانية، اجعل SubCategory2Id اختيارياً
+                    model.SubCategory2Id = null;
                 }
             }
 
@@ -333,16 +331,13 @@ namespace ReverseMarket.Controllers
 
                 try
                 {
-                    // ✅ أخذ أول فئة فرعية كـ SubCategory2Id الرئيسي
-                    int? primarySubCategory2Id = model.SubCategory2Ids?.FirstOrDefault();
-
                     var request = new Request
                     {
                         Title = model.Title,
                         Description = model.Description,
                         CategoryId = model.CategoryId,
                         SubCategory1Id = model.SubCategory1Id,
-                        SubCategory2Id = primarySubCategory2Id > 0 ? primarySubCategory2Id : null,
+                        SubCategory2Id = model.SubCategory2Id,
                         City = model.City,
                         District = model.District,
                         Location = model.Location,
@@ -453,222 +448,11 @@ namespace ReverseMarket.Controllers
 
 
 
-        private async Task NotifyAdminAboutNewRequestAsync(Request request)
-        {
-            try
-            {
-                var fullRequest = await _context.Requests
-                    .Include(r => r.User)
-                    .Include(r => r.Category)
-                    .Include(r => r.SubCategory1)
-                    .Include(r => r.SubCategory2)
-                    .FirstOrDefaultAsync(r => r.Id == request.Id);
 
-                if (fullRequest == null)
-                {
-                    _logger.LogError("❌ لم يتم العثور على الطلب #{RequestId}", request.Id);
-                    return;
-                }
 
-                var categoryPath = fullRequest.Category?.Name ?? "غير محدد";
-                if (fullRequest.SubCategory1 != null)
-                {
-                    categoryPath += $" > {fullRequest.SubCategory1.Name}";
-                }
-                if (fullRequest.SubCategory2 != null)
-                {
-                    categoryPath += $" > {fullRequest.SubCategory2.Name}";
-                }
 
-                // إنشاء إشعار للإدارة
-                var notification = await _notificationService.CreateNotificationAsync(
-                    title: "طلب جديد يحتاج مراجعة",
-                    message: $"طلب جديد من {fullRequest.User?.FirstName} {fullRequest.User?.LastName}\n" +
-                            $"العنوان: {fullRequest.Title}\n" +
-                            $"الفئة: {categoryPath}\n" +
-                            $"الموقع: {fullRequest.City} - {fullRequest.District}",
-                    type: NotificationType.NewRequestForAdmin,
-                    targetUserType: null, // سيتم إرساله للإدارة
-                    requestId: request.Id,
-                    link: $"/Admin/Requests/Details/{request.Id}",
-                    isFromAdmin: false
-                );
 
-                // إرسال الإشعار عبر جميع القنوات
-                await _notificationService.SendNotificationAsync(notification, sendEmail: true, sendWhatsApp: true, sendInApp: true);
 
-                _logger.LogInformation("✅ تم إرسال إشعار للإدارة عن طلب جديد #{RequestId}", request.Id);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ خطأ في إرسال إشعار للإدارة عن الطلب #{RequestId}", request.Id);
-            }
-        }
-
-        /// <summary>
-        /// إرسال إشعار للمتاجر المتخصصة عند اعتماد الطلب
-        /// </summary>
-        private async Task NotifyStoresAboutApprovedRequestAsync(Request request)
-        {
-            try
-            {
-                // جلب المتاجر المتخصصة في نفس الفئة والفئات الفرعية
-                var targetStores = await _context.Users
-                    .Where(u => u.UserType == UserType.Seller && u.IsStoreApproved && u.IsActive)
-                    .Where(u => u.StoreCategories.Any(sc => 
-                        sc.CategoryId == request.CategoryId &&
-                        (request.SubCategory1Id == null || sc.SubCategory1Id == request.SubCategory1Id) &&
-                        (request.SubCategory2Id == null || sc.SubCategory2Id == request.SubCategory2Id)))
-                    .ToListAsync();
-
-                if (!targetStores.Any())
-                {
-                    _logger.LogInformation("لا توجد متاجر متخصصة للطلب #{RequestId}", request.Id);
-                    return;
-                }
-
-                var categoryPath = request.Category?.Name ?? "غير محدد";
-                if (request.SubCategory1 != null)
-                {
-                    categoryPath += $" > {request.SubCategory1.Name}";
-                }
-                if (request.SubCategory2 != null)
-                {
-                    categoryPath += $" > {request.SubCategory2.Name}";
-                }
-
-                // إرسال إشعار لكل متجر متخصص
-                foreach (var store in targetStores)
-                {
-                    var notification = await _notificationService.CreateNotificationAsync(
-                        title: "طلب جديد متاح في تخصصك",
-                        message: $"طلب جديد: {request.Title}\n" +
-                                $"الفئة: {categoryPath}\n" +
-                                $"الموقع: {request.City} - {request.District}\n" +
-                                $"من: {request.User?.FirstName} {request.User?.LastName}",
-                        type: NotificationType.NewRequestForStore,
-                        userId: store.Id,
-                        requestId: request.Id,
-                        link: $"/Requests/Details/{request.Id}",
-                        isFromAdmin: true
-                    );
-
-                    await _notificationService.SendNotificationAsync(notification, 
-                        sendEmail: store.AllowEmail, 
-                        sendWhatsApp: store.AllowWhatsApp, 
-                        sendInApp: store.AllowInAppChat);
-                }
-
-                _logger.LogInformation("✅ تم إرسال إشعارات لـ {Count} متجر عن الطلب #{RequestId}", 
-                    targetStores.Count, request.Id);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ خطأ في إرسال إشعارات للمتاجر عن الطلب #{RequestId}", request.Id);
-            }
-        }
-
-        /// <summary>
-        /// إرسال إشعار لصاحب الطلب
-        /// </summary>
-        private async Task NotifyRequestOwnerAsync(Request request, NotificationType type, string title, string message, string? rejectionReason = null)
-        {
-            try
-            {
-                var fullMessage = message;
-                if (!string.IsNullOrEmpty(rejectionReason))
-                {
-                    fullMessage += $"\n\nسبب الرفض: {rejectionReason}";
-                }
-
-                var notification = await _notificationService.CreateNotificationAsync(
-                    title: title,
-                    message: fullMessage,
-                    type: type,
-                    userId: request.UserId,
-                    requestId: request.Id,
-                    link: $"/Requests/Details/{request.Id}",
-                    isFromAdmin: true
-                );
-
-                var user = await _userManager.FindByIdAsync(request.UserId);
-                if (user != null)
-                {
-                    await _notificationService.SendNotificationAsync(notification, 
-                        sendEmail: user.AllowEmail, 
-                        sendWhatsApp: user.AllowWhatsApp, 
-                        sendInApp: user.AllowInAppChat);
-                }
-
-                _logger.LogInformation("✅ تم إرسال إشعار لصاحب الطلب #{RequestId}", request.Id);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ خطأ في إرسال إشعار لصاحب الطلب #{RequestId}", request.Id);
-            }
-        }
-
-        // الكود القديم للواتساب (احتياطي)
-        private async Task SendWhatsAppToAdminAsync(Request request)
-        {
-            try
-            {
-                var adminPhone = "+9647805006974";
-
-                var fullRequest = await _context.Requests
-                    .Include(r => r.User)
-                    .Include(r => r.Category)
-                    .Include(r => r.SubCategory1)
-                    .Include(r => r.SubCategory2)
-                    .FirstOrDefaultAsync(r => r.Id == request.Id);
-
-                if (fullRequest == null) return;
-
-                var categoryPath = fullRequest.Category?.Name ?? "غير محدد";
-                if (fullRequest.SubCategory1 != null)
-                {
-                    categoryPath += $" > {fullRequest.SubCategory1.Name}";
-                }
-                if (fullRequest.SubCategory2 != null)
-                {
-                    categoryPath += $" > {fullRequest.SubCategory2.Name}";
-                }
-
-                var messageText = $"طلب جديد يحتاج مراجعة!\n\n" +
-                                 $"المستخدم: {fullRequest.User?.FirstName} {fullRequest.User?.LastName}\n" +
-                                 $"رقم الهاتف: {fullRequest.User?.PhoneNumber}\n\n" +
-                                 $"عنوان الطلب: {fullRequest.Title}\n\n" +
-                                 $"الفئة: {categoryPath}\n\n" +
-                                 $"الموقع: {fullRequest.City} - {fullRequest.District}\n\n" +
-                                 $"التفاصيل:\n{fullRequest.Description}\n\n" +
-                                 $"التاريخ: {fullRequest.CreatedAt:yyyy-MM-dd HH:mm}\n\n" +
-                                 $"يرجى مراجعة الطلب واعتماده\n\n" +
-                                 $"السوق العكسي";
-
-                var whatsAppRequest = new WhatsAppMessageRequest
-                {
-                    recipient = adminPhone,
-                    message = messageText,
-                    type = "whatsapp",
-                    lang = "ar"
-                };
-
-                var result = await _customWhatsAppService.SendMessageAsync(whatsAppRequest);
-
-                if (result.Success)
-                {
-                    _logger.LogInformation("✅ تم إرسال واتساب للإدارة");
-                }
-                else
-                {
-                    _logger.LogError("❌ فشل إرسال إشعار للإدارة: {Error}", result.Message);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ خطأ في إرسال إشعار للإدارة");
-            }
-        }
 
         /// <summary>
         /// عرض طلبات المستخدم الحالي (للمشترين فقط)
@@ -736,7 +520,7 @@ namespace ReverseMarket.Controllers
             }
 
             ViewBag.Categories = await _context.Categories.Where(c => c.IsActive).ToListAsync();
-            
+
             var model = new EditRequestViewModel
             {
                 Id = request.Id,
@@ -955,7 +739,7 @@ namespace ReverseMarket.Controllers
                 await _notificationService.SendNotificationAsync(adminNotification, sendEmail: true, sendWhatsApp: false, sendInApp: true);
 
                 // إشعار للمستخدم
-                await NotifyRequestOwnerAsync(request, NotificationType.RequestDeleted, 
+                await NotifyRequestOwnerAsync(request, NotificationType.RequestDeleted,
                     "تم حذف طلبك", $"تم حذف طلبك: {request.Title} بنجاح");
 
                 _logger.LogInformation("✅ تم إرسال إشعارات حذف الطلب #{RequestId}", request.Id);
@@ -986,6 +770,35 @@ namespace ReverseMarket.Controllers
                 .ToListAsync();
 
             return Json(subCategories);
+        }
+        /// <summary>
+        /// إرسال إشعار لصاحب الطلب
+        /// </summary>
+        private async Task NotifyRequestOwnerAsync(Request request, NotificationType notificationType, string title, string message)
+        {
+            try
+            {
+                if (request.UserId == null)
+                    return;
+
+                var notification = await _notificationService.CreateNotificationAsync(
+                    title: title,
+                    message: message,
+                    type: notificationType,
+                    targetUserType: null,
+                    requestId: request.Id,
+                    userId: request.UserId,
+                    isFromAdmin: false
+                );
+
+                await _notificationService.SendNotificationAsync(notification, sendEmail: true, sendWhatsApp: false, sendInApp: true);
+
+                _logger.LogInformation("✅ تم إرسال إشعار لصاحب الطلب #{RequestId}", request.Id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ خطأ في إرسال إشعار لصاحب الطلب #{RequestId}", request.Id);
+            }
         }
     }
 }

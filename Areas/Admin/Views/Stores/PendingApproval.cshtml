@@ -32,7 +32,7 @@
                                     @if (!string.IsNullOrEmpty(store.StoreDescription))
                                     {
                                         <br>
-                            
+
                                         <small class="text-muted">@store.StoreDescription</small>
                                     }
                                 </td>
@@ -56,7 +56,7 @@
                                                 <i class="fas fa-check"></i> موافقة
                                             </button>
                                         </form>
-                                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="rejectStore('@store.Id', '@store.StoreName')">
+                                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="showRejectStoreModal('@store.Id', '@store.StoreName')">
                                             <i class="fas fa-times"></i> رفض
                                         </button>
                                     </div>
@@ -78,33 +78,116 @@
     </div>
 </div>
 
+<!-- Reject Store Modal -->
+<div class="modal fade" id="rejectStoreModal" tabindex="-1" aria-labelledby="rejectStoreModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="rejectStoreModalLabel">
+                    <i class="fas fa-times me-2"></i>
+                    رفض المتجر
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+            </div>
+            <form id="rejectStoreForm" method="post" action="">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>تنبيه:</strong> سيتم إرسال إشعار لصاحب المتجر بسبب الرفض عبر الواتساب.
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-store me-2"></i>
+                            اسم المتجر: <span id="storeNameDisplay" class="text-primary"></span>
+                        </label>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="storeRejectionReason" class="form-label fw-bold">
+                            <i class="fas fa-comment me-2"></i>
+                            سبب الرفض <span class="text-danger">*</span>
+                        </label>
+                        <textarea class="form-control" id="storeRejectionReason" name="reason" rows="4"
+                                  placeholder="يرجى كتابة سبب واضح ومفصل لرفض هذا المتجر..." required></textarea>
+                        <div class="form-text">
+                            سيتم إرسال هذا السبب لصاحب المتجر، لذا يرجى كتابة سبب واضح ومهذب.
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">أسباب شائعة:</label>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setStoreReason('معلومات المتجر غير مكتملة أو غير واضحة')">
+                                معلومات ناقصة
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setStoreReason('المتجر لا يتوافق مع شروط المنصة')">
+                                لا يتوافق مع الشروط
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setStoreReason('معلومات الاتصال غير صحيحة أو غير مفعلة')">
+                                معلومات اتصال خاطئة
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setStoreReason('متجر مكرر أو موجود مسبقاً')">
+                                متجر مكرر
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>
+                        إلغاء
+                    </button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-check me-2"></i>
+                        تأكيد الرفض
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
-        function rejectStore(id, name) {
-            var reason = prompt(`سبب رفض متجر "${name}":`);
-            if (reason) {
-                var form = document.createElement('form');
-                form.method = 'POST';
-                form.action = `/Admin/Stores/RejectStore/${id}`;
+        function showRejectStoreModal(storeId, storeName) {
+            document.getElementById('storeNameDisplay').textContent = storeName;
+            document.getElementById('storeRejectionReason').value = '';
+            document.getElementById('rejectStoreForm').action = `/Admin/Stores/RejectStore/${storeId}`;
 
-                var reasonInput = document.createElement('input');
-                reasonInput.type = 'hidden';
-                reasonInput.name = 'reason';
-                reasonInput.value = reason;
-                form.appendChild(reasonInput);
+            var modal = new bootstrap.Modal(document.getElementById('rejectStoreModal'));
+            modal.show();
+        }
 
-                var token = document.querySelector('input[name="__RequestVerificationToken"]');
-                if (token) {
-                    var tokenInput = document.createElement('input');
-                    tokenInput.type = 'hidden';
-                    tokenInput.name = '__RequestVerificationToken';
-                    tokenInput.value = token.value;
-                    form.appendChild(tokenInput);
+        function setStoreReason(reason) {
+            document.getElementById('storeRejectionReason').value = reason;
+        }
+
+        // تحسين تجربة المستخدم
+        document.addEventListener('DOMContentLoaded', function() {
+            const rejectForm = document.getElementById('rejectStoreForm');
+            const submitBtn = rejectForm.querySelector('button[type="submit"]');
+
+            rejectForm.addEventListener('submit', function(e) {
+                const reason = document.getElementById('storeRejectionReason').value.trim();
+
+                if (reason.length < 10) {
+                    e.preventDefault();
+                    alert('يرجى كتابة سبب مفصل للرفض (على الأقل 10 أحرف)');
+                    return false;
                 }
 
-                document.body.appendChild(form);
-                form.submit();
-            }
-        }
+                const storeName = document.getElementById('storeNameDisplay').textContent;
+                if (!confirm(`هل أنت متأكد من رفض متجر "${storeName}"؟ سيتم إرسال إشعار لصاحب المتجر بسبب الرفض.`)) {
+                    e.preventDefault();
+                    return false;
+                }
+
+                // تعطيل الزر لمنع الإرسال المتكرر
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>جاري الرفض...';
+            });
+        });
     </script>
 }

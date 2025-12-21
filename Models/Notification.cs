@@ -58,16 +58,18 @@ namespace ReverseMarket.Models
         RequestDeleted,         // طلب تم حذفه
         NewRequestForAdmin,     // طلب جديد للإدارة
         NewRequestForStore,     // طلب جديد للمتجر
-        
+
         // إشعارات المتاجر
         StoreApproved,          // متجر تم اعتماده
         StoreRejected,          // متجر تم رفضه
+        StoreActivated,         // متجر تم تفعيله
+        StoreDeactivated,       // متجر تم إيقافه
         NewStoreForAdmin,       // متجر جديد للإدارة
-        
+
         // إشعارات الروابط
         UrlChangeApproved,      // تغيير الروابط تم اعتماده
         UrlChangeRejected,      // تغيير الروابط تم رفضه
-        
+
         // إشعارات عامة
         AdminAnnouncement,      // إعلان من الإدارة
         SystemNotification,     // إشعار نظام

@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using ReverseMarket.CustomWhatsappService;
 using ReverseMarket.Data;
 using ReverseMarket.Extensions;
+using ReverseMarket.Middleware;
 using ReverseMarket.Models;
 using ReverseMarket.Models.Identity;
 using ReverseMarket.Services;
@@ -140,7 +141,7 @@ builder.Services.AddSession(options =>
     options.IdleTimeout = TimeSpan.FromMinutes(30);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
- 
+
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
     options.Cookie.SameSite = SameSiteMode.Lax;
 });
@@ -263,6 +264,9 @@ else
     app.UseHsts();
 }
 
+// Status Code Pages
+app.UseStatusCodePagesWithReExecute("/Error/{0}");
+
 // Static Files
 app.UseHttpsRedirection();
 app.UseStaticFiles();
@@ -273,6 +277,9 @@ app.UseRouting();
 // Authentication & Authorization
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Admin Area Protection
+app.UseAdminAreaAuthorization();
 
 // Session
 app.UseSession();

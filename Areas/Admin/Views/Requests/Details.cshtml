@@ -61,16 +61,10 @@
                             </button>
                         </form>
 
-                        <form method="post" asp-action="UpdateStatus" style="display: inline;">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="id" value="@Model.Id" />
-                            <input type="hidden" name="status" value="3" />
-                            <input type="hidden" name="adminNotes" value="تم رفض الطلب" />
-                            <button type="submit" class="btn btn-danger" onclick="return confirm('هل أنت متأكد من رفض هذا الطلب؟')">
-                                <i class="fas fa-times me-1"></i>
-                                رفض
-                            </button>
-                        </form>
+                        <button type="button" class="btn btn-danger" onclick="showRejectModal(@Model.Id)">
+                            <i class="fas fa-times me-1"></i>
+                            رفض
+                        </button>
                     }
                     else if (Model.Status == RequestStatus.Postponed)
                     {
@@ -86,16 +80,10 @@
                             </button>
                         </form>
 
-                        <form method="post" asp-action="UpdateStatus" style="display: inline;">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="id" value="@Model.Id" />
-                            <input type="hidden" name="status" value="3" />
-                            <input type="hidden" name="adminNotes" value="تم رفض الطلب بعد التأجيل" />
-                            <button type="submit" class="btn btn-danger" onclick="return confirm('هل أنت متأكد من رفض هذا الطلب المؤجل؟')">
-                                <i class="fas fa-times me-1"></i>
-                                رفض
-                            </button>
-                        </form>
+                        <button type="button" class="btn btn-danger" onclick="showRejectModal(@Model.Id)">
+                            <i class="fas fa-times me-1"></i>
+                            رفض
+                        </button>
                     }
                     else if (Model.Status == RequestStatus.Approved)
                     {
@@ -300,11 +288,112 @@
     </div>
 </div>
 
+<!-- Reject Request Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="rejectModalLabel">
+                    <i class="fas fa-times me-2"></i>
+                    رفض الطلب
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+            </div>
+            <form id="rejectForm" method="post" asp-action="RejectRequest">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="rejectRequestId" name="id" value="" />
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>تنبيه:</strong> سيتم إرسال إشعار للمستخدم بسبب الرفض عبر الموقع والبريد الإلكتروني والواتساب.
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="rejectionReason" class="form-label fw-bold">
+                            <i class="fas fa-comment me-2"></i>
+                            سبب الرفض <span class="text-danger">*</span>
+                        </label>
+                        <textarea class="form-control" id="rejectionReason" name="rejectionReason" rows="4"
+                                  placeholder="يرجى كتابة سبب واضح ومفصل لرفض هذا الطلب..." required></textarea>
+                        <div class="form-text">
+                            سيتم إرسال هذا السبب للمستخدم، لذا يرجى كتابة سبب واضح ومهذب.
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">أسباب شائعة:</label>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setReason('الطلب غير واضح أو ناقص المعلومات')">
+                                طلب غير واضح
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setReason('الطلب يخالف شروط الاستخدام')">
+                                يخالف الشروط
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setReason('معلومات الاتصال غير صحيحة')">
+                                معلومات خاطئة
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setReason('طلب مكرر')">
+                                طلب مكرر
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>
+                        إلغاء
+                    </button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-check me-2"></i>
+                        تأكيد الرفض
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         function showImage(imageSrc) {
             document.getElementById('modalImage').src = imageSrc;
         }
+
+        function showRejectModal(requestId) {
+            document.getElementById('rejectRequestId').value = requestId;
+            document.getElementById('rejectionReason').value = '';
+            var modal = new bootstrap.Modal(document.getElementById('rejectModal'));
+            modal.show();
+        }
+
+        function setReason(reason) {
+            document.getElementById('rejectionReason').value = reason;
+        }
+
+        // تحسين تجربة المستخدم
+        document.addEventListener('DOMContentLoaded', function() {
+            const rejectForm = document.getElementById('rejectForm');
+            const submitBtn = rejectForm.querySelector('button[type="submit"]');
+
+            rejectForm.addEventListener('submit', function(e) {
+                const reason = document.getElementById('rejectionReason').value.trim();
+
+                if (reason.length < 10) {
+                    e.preventDefault();
+                    alert('يرجى كتابة سبب مفصل للرفض (على الأقل 10 أحرف)');
+                    return false;
+                }
+
+                if (!confirm('هل أنت متأكد من رفض هذا الطلب؟ سيتم إرسال إشعار للمستخدم بسبب الرفض.')) {
+                    e.preventDefault();
+                    return false;
+                }
+
+                // تعطيل الزر لمنع الإرسال المتكرر
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>جاري الرفض...';
+            });
+        });
     </script>
 }
 

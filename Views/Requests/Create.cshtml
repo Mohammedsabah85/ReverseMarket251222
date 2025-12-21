@@ -80,25 +80,16 @@
                                 <span asp-validation-for="SubCategory1Id" class="text-danger"></span>
                             </div>
 
-                            <!-- Sub Category 2 - Mobile Optimized -->
+                            <!-- Sub Category 2 -->
                             <div class="category-step mb-4" id="subCategory2Container" style="display: none;">
-                                <label class="form-label category-label">
+                                <label asp-for="SubCategory2Id" class="form-label category-label">
                                     <i class="fas fa-tags me-2"></i>
-                                    @Localizer["SubCategory2"] *
+                                    @Localizer["SubCategory2"]
                                 </label>
-                                
-                                <!-- Mobile-friendly checkbox list -->
-                                <div class="subcategory2-mobile-list" id="subCategory2MobileList">
-                                    <!-- Will be populated by JavaScript -->
-                                </div>
-                                
-                                <!-- Hidden select for form submission -->
-                                <select name="SubCategory2Ids" id="subCategory2Select" class="d-none" multiple>
+                                <select asp-for="SubCategory2Id" class="form-control category-select" id="subCategory2Select">
+                                    <option value="">@Localizer["SelectSubCategory2"]</option>
                                 </select>
-                                
-                                <!-- Selected categories display -->
-                                <div id="selectedSubCategories2" class="selected-categories-display mt-3"></div>
-                                <span class="text-danger" id="subCategory2Error" style="display: none;">يرجى اختيار فئة فرعية واحدة على الأقل</span>
+                                <span asp-validation-for="SubCategory2Id" class="text-danger"></span>
                             </div>
                         </div>
                     </div>
@@ -205,10 +196,10 @@
         border-bottom: 1px solid var(--border-color);
     }
 
-    .form-section:last-child {
-        border-bottom: none;
-        margin-bottom: 0;
-    }
+        .form-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
 
     .section-title {
         color: #b3962d;
@@ -231,16 +222,16 @@
         background: #fafafa;
     }
 
-    .upload-zone:hover {
-        border-color: #b3962d;
-        background: rgba(179, 150, 45, 0.05);
-    }
+        .upload-zone:hover {
+            border-color: #b3962d;
+            background: rgba(179, 150, 45, 0.05);
+        }
 
-    .upload-zone.dragover {
-        border-color: #28a745;
-        background: rgba(40, 167, 69, 0.1);
-        transform: scale(1.02);
-    }
+        .upload-zone.dragover {
+            border-color: #28a745;
+            background: rgba(40, 167, 69, 0.1);
+            transform: scale(1.02);
+        }
 
     .upload-content {
         pointer-events: none;
@@ -291,18 +282,18 @@
         color: #2e7d32;
     }
 
-    .selected-badge .remove-badge {
-        margin-right: 8px;
-        cursor: pointer;
-        color: #c62828;
-        font-weight: bold;
-        font-size: 1rem;
-        line-height: 1;
-    }
+        .selected-badge .remove-badge {
+            margin-right: 8px;
+            cursor: pointer;
+            color: #c62828;
+            font-weight: bold;
+            font-size: 1rem;
+            line-height: 1;
+        }
 
-    .selected-badge .remove-badge:hover {
-        color: #b71c1c;
-    }
+            .selected-badge .remove-badge:hover {
+                color: #b71c1c;
+            }
 
     /* Category Selection Styles */
     .category-selection-container {
@@ -320,10 +311,10 @@
         transition: all 0.3s ease;
     }
 
-    .category-step.active {
-        border-color: #b3962d;
-        box-shadow: 0 0 0 0.2rem rgba(179, 150, 45, 0.25);
-    }
+        .category-step.active {
+            border-color: #b3962d;
+            box-shadow: 0 0 0 0.2rem rgba(179, 150, 45, 0.25);
+        }
 
     .category-label {
         font-weight: 600;
@@ -341,10 +332,10 @@
         transition: all 0.3s ease;
     }
 
-    .category-select:focus {
-        border-color: #b3962d;
-        box-shadow: 0 0 0 0.2rem rgba(179, 150, 45, 0.25);
-    }
+        .category-select:focus {
+            border-color: #b3962d;
+            box-shadow: 0 0 0 0.2rem rgba(179, 150, 45, 0.25);
+        }
 
     /* Mobile-Friendly SubCategory2 */
     .subcategory2-mobile-list {
@@ -371,22 +362,22 @@
         user-select: none;
     }
 
-    .subcategory2-item:hover {
-        border-color: #b3962d;
-        background: rgba(179, 150, 45, 0.05);
-    }
+        .subcategory2-item:hover {
+            border-color: #b3962d;
+            background: rgba(179, 150, 45, 0.05);
+        }
 
-    .subcategory2-item.selected {
-        border-color: #28a745;
-        background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
-        color: #155724;
-    }
+        .subcategory2-item.selected {
+            border-color: #28a745;
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            color: #155724;
+        }
 
-    .subcategory2-item input[type="checkbox"] {
-        margin-left: 0.75rem;
-        transform: scale(1.2);
-        accent-color: #28a745;
-    }
+        .subcategory2-item input[type="checkbox"] {
+            margin-left: 0.75rem;
+            transform: scale(1.2);
+            accent-color: #28a745;
+        }
 
     .subcategory2-item-text {
         flex: 1;
@@ -413,27 +404,27 @@
         font-weight: 500;
     }
 
-    .selected-badge .remove-badge {
-        margin-right: 0.5rem;
-        cursor: pointer;
-        color: #c62828;
-        font-weight: bold;
-        font-size: 1.1rem;
-        line-height: 1;
-        width: 20px;
-        height: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 50%;
-        background: rgba(198, 40, 40, 0.1);
-        transition: all 0.2s ease;
-    }
+        .selected-badge .remove-badge {
+            margin-right: 0.5rem;
+            cursor: pointer;
+            color: #c62828;
+            font-weight: bold;
+            font-size: 1.1rem;
+            line-height: 1;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(198, 40, 40, 0.1);
+            transition: all 0.2s ease;
+        }
 
-    .selected-badge .remove-badge:hover {
-        background: rgba(198, 40, 40, 0.2);
-        color: #b71c1c;
-    }
+            .selected-badge .remove-badge:hover {
+                background: rgba(198, 40, 40, 0.2);
+                color: #b71c1c;
+            }
 
     /* Mobile Responsive */
     @@media (max-width: 768px) {
@@ -459,9 +450,9 @@
             font-size: 0.9rem;
         }
 
-        .subcategory2-item input[type="checkbox"] {
-            margin-left: 0.5rem;
-        }
+            .subcategory2-item input[type="checkbox"] {
+                margin-left: 0.5rem;
+            }
 
         .selected-badge {
             font-size: 0.8rem;
@@ -496,7 +487,6 @@
             initializeCategoryDropdowns();
             initializeDragAndDrop();
             initializeFormValidation();
-            initializeSubCategory2Display();
         });
 
         // ==========================================
@@ -535,13 +525,13 @@
         function removeCategory(value) {
             const subCat2Select = document.getElementById('subCategory2Select');
             const mobileList = document.getElementById('subCategory2MobileList');
-            
+
             // Update hidden select
             const option = subCat2Select.querySelector(`option[value="${value}"]`);
             if (option) {
                 option.selected = false;
             }
-            
+
             // Update mobile checkbox
             const checkbox = mobileList.querySelector(`input[value="${value}"]`);
             if (checkbox) {
@@ -551,7 +541,7 @@
                     itemDiv.classList.remove('selected');
                 }
             }
-            
+
             updateSelectedCategories();
         }
 
@@ -672,7 +662,7 @@
                     const categoryId = this.value;
                     const subCategory1Container = document.getElementById('subCategory1Container');
                     const subCategory2Container = document.getElementById('subCategory2Container');
-                    
+
                     if (categoryId) {
                         loadSubCategories1(categoryId);
                         subCategory1Container.style.display = 'block';
@@ -692,7 +682,7 @@
                 subCategory1Select.addEventListener('change', function () {
                     const subCategory1Id = this.value;
                     const subCategory2Container = document.getElementById('subCategory2Container');
-                    
+
                     if (subCategory1Id) {
                         loadSubCategories2(subCategory1Id);
                         subCategory2Container.style.display = 'block';
@@ -728,83 +718,38 @@
         }
 
         function loadSubCategories2(subCategory1Id) {
-            const mobileList = document.getElementById('subCategory2MobileList');
-            const hiddenSelect = document.getElementById('subCategory2Select');
-            const displayDiv = document.getElementById('selectedSubCategories2');
-
-            // Clear existing content
-            mobileList.innerHTML = '';
-            hiddenSelect.innerHTML = '';
-            displayDiv.innerHTML = '';
+            const select = document.getElementById('subCategory2Select');
+            select.innerHTML = '<option value="">@Localizer["SelectSubCategory2"]</option>';
 
             if (!subCategory1Id) return;
 
             // Show loading
-            mobileList.innerHTML = '<div class="text-center p-3"><i class="fas fa-spinner fa-spin me-2"></i>جاري التحميل...</div>';
+            select.innerHTML = '<option value="">جاري التحميل...</option>';
 
             fetch(`/Requests/GetSubCategories2?subCategory1Id=${subCategory1Id}`)
                 .then(r => r.json())
                 .then(data => {
-                    mobileList.innerHTML = '';
-                    hiddenSelect.innerHTML = '';
-                    
-                    if (data.length === 0) {
-                        mobileList.innerHTML = '<div class="text-center p-3 text-muted">لا توجد فئات فرعية متاحة</div>';
-                    } else {
+                    select.innerHTML = '<option value="">@Localizer["SelectSubCategory2"]</option>';
+
+                    if (data.length > 0) {
                         data.forEach(item => {
-                            // Add to hidden select for form submission
-                            hiddenSelect.innerHTML += `<option value="${item.id}">${item.name}</option>`;
-                            
-                            // Create mobile-friendly checkbox item
-                            const itemDiv = document.createElement('div');
-                            itemDiv.className = 'subcategory2-item';
-                            itemDiv.innerHTML = `
-                                <span class="subcategory2-item-text">${item.name}</span>
-                                <input type="checkbox" value="${item.id}" onchange="toggleSubCategory2(this)">
-                            `;
-                            
-                            // Add click handler for the entire item
-                            itemDiv.addEventListener('click', function(e) {
-                                if (e.target.type !== 'checkbox') {
-                                    const checkbox = this.querySelector('input[type="checkbox"]');
-                                    checkbox.checked = !checkbox.checked;
-                                    toggleSubCategory2(checkbox);
-                                }
-                            });
-                            
-                            mobileList.appendChild(itemDiv);
+                            const option = document.createElement('option');
+                            option.value = item.id;
+                            option.textContent = item.name;
+                            select.appendChild(option);
                         });
+                    } else {
+                        select.innerHTML = '<option value="">لا توجد فئات فرعية متاحة</option>';
                     }
                 })
                 .catch(() => {
-                    mobileList.innerHTML = '<div class="text-center p-3 text-danger">خطأ في تحميل البيانات</div>';
+                    select.innerHTML = '<option value="">خطأ في التحميل</option>';
                 });
         }
 
-        function toggleSubCategory2(checkbox) {
-            const itemDiv = checkbox.closest('.subcategory2-item');
-            const hiddenSelect = document.getElementById('subCategory2Select');
-            const option = hiddenSelect.querySelector(`option[value="${checkbox.value}"]`);
-            
-            if (checkbox.checked) {
-                itemDiv.classList.add('selected');
-                if (option) option.selected = true;
-            } else {
-                itemDiv.classList.remove('selected');
-                if (option) option.selected = false;
-            }
-            
-            updateSelectedCategories();
-        }
-
         function resetSubCategory2() {
-            const mobileList = document.getElementById('subCategory2MobileList');
-            const hiddenSelect = document.getElementById('subCategory2Select');
-            const displayDiv = document.getElementById('selectedSubCategories2');
-            
-            mobileList.innerHTML = '';
-            hiddenSelect.innerHTML = '';
-            displayDiv.innerHTML = '';
+            const select = document.getElementById('subCategory2Select');
+            select.innerHTML = '<option value="">@Localizer["SelectSubCategory2"]</option>';
         }
 
         // ==========================================
@@ -818,12 +763,11 @@
                 form.addEventListener('submit', function (e) {
                     const subCat2Select = document.getElementById('subCategory2Select');
 
-                    // التحقق فقط إذا كانت هناك خيارات متاحة
-                    if (subCat2Select.options.length > 0 && subCat2Select.selectedOptions.length === 0) {
+                    // التحقق من التصنيف الفرعي الثاني إذا كان متاحاً
+                    if (subCat2Select.options.length > 1 && !subCat2Select.value) {
                         e.preventDefault();
-                        document.getElementById('subCategory2Error').style.display = 'block';
                         subCat2Select.focus();
-                        showAlert('يرجى اختيار فئة فرعية واحدة على الأقل', 'error');
+                        showAlert('يرجى اختيار التصنيف الفرعي الثاني', 'error');
                         return;
                     }
 

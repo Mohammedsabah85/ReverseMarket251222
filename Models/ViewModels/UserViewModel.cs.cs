@@ -1,4 +1,4 @@
-using ReverseMarket.Models.Identity;
+﻿using ReverseMarket.Models.Identity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,6 +30,7 @@ namespace ReverseMarket.Models
         public bool IsEmailVerified { get; set; }
         public bool IsStoreApproved { get; set; }
         public DateTime CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }  // ✅ إضافة جديدة
         public IList<string> Roles { get; set; }
         public string GetFullName() => $"{FirstName} {LastName}".Trim();
         public List<string> StoreCategories { get; set; }
@@ -63,6 +64,7 @@ namespace ReverseMarket.Models
                 IsEmailVerified = user.IsEmailVerified,
                 IsStoreApproved = user.IsStoreApproved,
                 CreatedAt = user.CreatedAt,
+                UpdatedAt = user.UpdatedAt,  // ✅ إضافة جديدة
                 Roles = roles ?? new List<string>(),
                 StoreCategories = storeCategories ?? new List<string>()
             };
@@ -97,6 +99,7 @@ namespace ReverseMarket.Models
                 IsEmailVerified = user.IsEmailVerified,
                 IsStoreApproved = user.IsStoreApproved,
                 CreatedAt = user.CreatedAt,
+                UpdatedAt = user.UpdatedAt,  // ✅ إضافة جديدة
                 Roles = userRoles.ContainsKey(user.Id) ? userRoles[user.Id] : new List<string>()
             }).ToList();
         }

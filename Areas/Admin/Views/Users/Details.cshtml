@@ -1,4 +1,5 @@
-﻿@model User
+﻿@model UserViewModel
+@using ReverseMarket.Models.Identity
 @{
     ViewData["Title"] = "تفاصيل المستخدم";
     var userStats = ViewBag.UserStats as UserStatistics;
@@ -94,7 +95,7 @@
 
                             <div class="col-md-6">
                                 <strong>الجنس:</strong>
-                                <span class="d-block">@Model.Gender</span>
+                                <span class="d-block">@(string.IsNullOrEmpty(Model.Gender) ? "غير محدد" : Model.Gender)</span>
                             </div>
 
                             <div class="col-md-6">
@@ -134,6 +135,19 @@
                                 <strong>تاريخ التسجيل:</strong>
                                 <span class="d-block">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
                             </div>
+
+                            @if (Model.Roles != null && Model.Roles.Any())
+                            {
+                                <div class="col-md-6">
+                                    <strong>الأدوار:</strong>
+                                    <div>
+                                        @foreach (var role in Model.Roles)
+                                        {
+                                            <span class="badge bg-secondary me-1">@role</span>
+                                        }
+                                    </div>
+                                </div>
+                            }
                         </div>
                     </div>
                 </div>
@@ -166,20 +180,9 @@
                             <div class="col-12">
                                 <strong>فئات المتجر:</strong>
                                 <div class="mt-2">
-                                    @foreach (var storeCategory in Model.StoreCategories)
+                                    @foreach (var categoryName in Model.StoreCategories)
                                     {
-                                        if (storeCategory.Category != null)
-                                        {
-                                            <span class="badge bg-primary me-2 mb-2">@storeCategory.Category.Name</span>
-                                        }
-                                        if (storeCategory.SubCategory1 != null)
-                                        {
-                                            <span class="badge bg-secondary me-2 mb-2">@storeCategory.SubCategory1.Name</span>
-                                        }
-                                        if (storeCategory.SubCategory2 != null)
-                                        {
-                                            <span class="badge bg-info me-2 mb-2">@storeCategory.SubCategory2.Name</span>
-                                        }
+                                        <span class="badge bg-primary me-2 mb-2">@categoryName</span>
                                     }
                                 </div>
                             </div>
@@ -310,7 +313,7 @@
                         اتصال مباشر
                     </a>
 
-                    <a href="https://wa.me/@Model.PhoneNumber.Replace("+", "")" target="_blank" class="btn btn-success">
+                    <a href="https://wa.me/@Model.PhoneNumber?.Replace("+", "")" target="_blank" class="btn btn-success">
                         <i class="fab fa-whatsapp me-2"></i>
                         واتساب
                     </a>

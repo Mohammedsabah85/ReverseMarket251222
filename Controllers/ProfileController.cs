@@ -156,16 +156,28 @@ namespace ReverseMarket.Controllers
 
             // ✅ جلب فئات المتجر الحالية للبائعين
             List<StoreCategoryDisplay>? currentStoreCategories = null;
+            // ✅ الكود الجديد (أضف Id = sc.Id):
             if (user.UserType == UserType.Seller && user.StoreCategories != null && user.StoreCategories.Any())
             {
                 currentStoreCategories = user.StoreCategories.Select(sc => new StoreCategoryDisplay
                 {
+                    Id = sc.Id,  // ✅ أضف هذا السطر
                     SubCategory2Id = sc.SubCategory2Id ?? 0,
                     CategoryName = sc.Category?.Name ?? "",
                     SubCategory1Name = sc.SubCategory1?.Name ?? "",
                     SubCategory2Name = sc.SubCategory2?.Name ?? ""
                 }).ToList();
             }
+            //if (user.UserType == UserType.Seller && user.StoreCategories != null && user.StoreCategories.Any())
+            //{
+            //    currentStoreCategories = user.StoreCategories.Select(sc => new StoreCategoryDisplay
+            //    {
+            //        SubCategory2Id = sc.SubCategory2Id ?? 0,
+            //        CategoryName = sc.Category?.Name ?? "",
+            //        SubCategory1Name = sc.SubCategory1?.Name ?? "",
+            //        SubCategory2Name = sc.SubCategory2?.Name ?? ""
+            //    }).ToList();
+            //}
 
             var model = new EditProfileViewModel
             {
@@ -482,6 +494,27 @@ namespace ReverseMarket.Controllers
         /// <summary>
         /// جلب فئات المتجر الحالية للعرض
         /// </summary>
+        //private async Task LoadCurrentStoreCategories(EditProfileViewModel model, string userId)
+        //{
+        //    var storeCategories = await _context.StoreCategories
+        //        .Where(sc => sc.UserId == userId)
+        //        .Include(sc => sc.Category)
+        //        .Include(sc => sc.SubCategory1)
+        //        .Include(sc => sc.SubCategory2)
+        //        .ToListAsync();
+
+        //    if (storeCategories.Any())
+        //    {
+        //        model.CurrentStoreCategories = storeCategories.Select(sc => new StoreCategoryDisplay
+        //        {
+        //            SubCategory2Id = sc.SubCategory2Id ?? 0,
+        //            CategoryName = sc.Category?.Name ?? "",
+        //            SubCategory1Name = sc.SubCategory1?.Name ?? "",
+        //            SubCategory2Name = sc.SubCategory2?.Name ?? ""
+        //        }).ToList();
+        //    }
+        //}
+
         private async Task LoadCurrentStoreCategories(EditProfileViewModel model, string userId)
         {
             var storeCategories = await _context.StoreCategories
@@ -495,6 +528,7 @@ namespace ReverseMarket.Controllers
             {
                 model.CurrentStoreCategories = storeCategories.Select(sc => new StoreCategoryDisplay
                 {
+                    Id = sc.Id,  // ✅ أضف هذا السطر
                     SubCategory2Id = sc.SubCategory2Id ?? 0,
                     CategoryName = sc.Category?.Name ?? "",
                     SubCategory1Name = sc.SubCategory1?.Name ?? "",
@@ -604,6 +638,113 @@ namespace ReverseMarket.Controllers
 
             return View(model);
         }
+
+
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+
+
+        /// <summary>
+        /// حذف تخصص من المتجر
+        /// </summary>
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        public async Task<IActionResult> RemoveCategory(int categoryId)
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return Json(new { success = false, message = "يرجى تسجيل الدخول أولاً" });
+                }
+
+                // التحقق من أن المستخدم بائع
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user == null || user.UserType != UserType.Seller)
+                {
+                    return Json(new { success = false, message = "غير مصرح لك بهذا الإجراء" });
+                }
+
+                // البحث عن التخصص - مع التحقق من أنه يخص هذا المستخدم
+                var storeCategory = await _context.StoreCategories
+                    .FirstOrDefaultAsync(sc => sc.Id == categoryId && sc.UserId == userId);
+
+                if (storeCategory == null)
+                {
+                    _logger.LogWarning("⚠️ محاولة حذف تخصص غير موجود. CategoryId: {CategoryId}, UserId: {UserId}",
+                        categoryId, userId);
+                    return Json(new { success = false, message = "التخصص غير موجود أو لا يخصك" });
+                }
+
+                // حذف التخصص
+                _context.StoreCategories.Remove(storeCategory);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("✅ تم حذف التخصص {CategoryId} للبائع {UserId}", categoryId, userId);
+
+                return Json(new { success = true, message = "تم حذف التخصص بنجاح" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ خطأ في حذف التخصص {CategoryId}", categoryId);
+                return Json(new { success = false, message = "حدث خطأ أثناء حذف التخصص" });
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+
+        //public async Task<IActionResult> RemoveCategory(int categoryId)
+        //{
+        //    try
+        //    {
+        //        var userId = GetCurrentUserId();
+        //        if (string.IsNullOrEmpty(userId))
+        //        {
+        //            return Json(new { success = false, message = "يرجى تسجيل الدخول أولاً" });
+        //        }
+
+        //        // التحقق من أن المستخدم بائع
+        //        var user = await _userManager.FindByIdAsync(userId);
+        //        if (user == null || user.UserType != UserType.Seller)
+        //        {
+        //            return Json(new { success = false, message = "غير مصرح لك بهذا الإجراء" });
+        //        }
+
+        //        // البحث عن التخصص
+        //        var storeCategory = await _context.StoreCategories
+        //            .FirstOrDefaultAsync(sc => sc.Id == categoryId && sc.UserId == userId);
+
+        //        if (storeCategory == null)
+        //        {
+        //            return Json(new { success = false, message = "التخصص غير موجود" });
+        //        }
+
+        //        // حذف التخصص
+        //        _context.StoreCategories.Remove(storeCategory);
+        //        await _context.SaveChangesAsync();
+
+        //        _logger.LogInformation("✅ تم حذف التخصص {CategoryId} للبائع {UserId}", categoryId, userId);
+
+        //        return Json(new { success = true, message = "تم حذف التخصص بنجاح" });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "❌ خطأ في حذف التخصص {CategoryId}", categoryId);
+        //        return Json(new { success = false, message = "حدث خطأ أثناء حذف التخصص" });
+        //    }
+        //}
+
 
         #region إدارة المتجر (للبائعين فقط)
 
